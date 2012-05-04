@@ -4,6 +4,7 @@ Include( SourceFile() )
 srcs = {
 	"main.cpp",
 	"print.cpp",
+	"svg.cpp",
 	DParse( "ebnf.g" ),
 }
 

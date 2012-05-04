@@ -14,7 +14,7 @@ ebnf:
 productions:
 	production
 		{
-			$$ = new productions( $0, NULL );
+			$$ = $0;
 		}|
 	productions production
 		{
@@ -30,7 +30,7 @@ production:
 expression:
 	term
 	{
-		$$ = new expression( $0, NULL );
+		$$ = $0;
 	}|
 	expression '|' term
 	{
@@ -40,7 +40,7 @@ expression:
 term:
 	factor
 	{
-		$$ = new term( $0, NULL );
+		$$ = $0;
 	}|
 	term factor
 	{
