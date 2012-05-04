@@ -18,7 +18,7 @@ productions:
 		}|
 	productions production
 		{
-			$$ = new productions( $1, $0 );
+			$$ = new productions( $0, $1 );
 		}|;
 
 production:
@@ -34,7 +34,7 @@ expression:
 	}|
 	expression '|' term
 	{
-		$$ = new expression( $2, $0 );
+		$$ = new expression( $0, $2 );
 	};
 
 term:
@@ -44,7 +44,7 @@ term:
 	}|
 	term factor
 	{
-		$$ = new term( $1, $0 );
+		$$ = new term( $0, $1 );
 	};
 
 factor:
@@ -62,7 +62,7 @@ factor:
 		}|
 	'(' expression ')'
 		{
-			$$ = new group( $1 );
+			$$ = $1;
 		}|
 	'{' expression '}'
 		{

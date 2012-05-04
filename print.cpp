@@ -36,27 +36,30 @@ ostream &operator<<( ostream &out, const node &node )
 	}
 	else if ( const productions *n = dynamic_cast<const productions*>( &node ) )
 	{
-		out << *n->prev() << *n->value();
+		for ( size_t i = 0; i < n->size(); ++i )
+			out << *( n->at( i ) );
 	}
 	else if ( const production *n = dynamic_cast<const production*>( &node ) )
 	{
-		out << '\t' << *n->id() << " = " << *n->expr() << '\n';
+		out << '\t' << *n->id() << " = " << *n->expr() << " .\n";
 	}
 	else if ( const expression *n = dynamic_cast<const expression*>( &node ) )
 	{
-		if ( n->prev() )
-			out << *n->prev() << " | ";
-		out << *n->value();
+		for ( size_t i = 0; i < n->size(); ++i )
+		{
+			if ( i > 0 )
+				out << " | ";
+			out << *( n->at( i ) );
+		}
 	}
 	else if ( const term *n = dynamic_cast<const term*>( &node ) )
 	{
-		if( n->prev() )
-			out << *n->prev() << ' ';
-		out << *n->value();
-	}
-	else if ( const group *n = dynamic_cast<const group*>( &node ) )
-	{
-		out << "( " << *n->expr() << " )";
+		for ( size_t i = 0; i < n->size(); ++i )
+		{
+			if ( i > 0 )
+				out << ' ';
+			out << *( n->at( i ) );
+		}
 	}
 	else if ( const repetition *n = dynamic_cast<const repetition*>( &node ) )
 	{

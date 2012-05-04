@@ -23,6 +23,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -108,37 +109,25 @@ private:
 
 ////////////////////////////////////////
 
-class group : public node
-{
-public:
-	group( node *expr )
-		: _expr( expr )
-	{
-	}
-
-	inline const node *expr( void ) const { return _expr; }
-
-private:
-	node *_expr;
-
-};
-
-////////////////////////////////////////
-
 class term : public node
 {
 public:
-	term( node *v, node *p )
-		: _value( v ), _prev( p )
+	term( node *factors, node *n )
 	{
+		term *t = dynamic_cast<term*>( factors );
+		if( t )
+			*this = *t;
+		else
+			push_back( factors );
+		push_back( n );
 	}
 
-	inline const node *value( void ) const { return _value; }
-	inline const node *prev( void ) const { return _prev; }
+	inline void push_back( node *n ) { _factors.push_back( n ); }
+	inline size_t size( void ) const { return _factors.size(); }
+	inline const node *at( int i ) const { return _factors.at( i ); }
 
 private:
-	node *_value;
-	node *_prev;
+	vector<node *> _factors;
 };
 
 ////////////////////////////////////////
@@ -146,17 +135,22 @@ private:
 class expression : public node
 {
 public:
-	expression( node *v, node *p )
-		: _value( v ), _prev( p )
+	expression( node *exprs, node *n )
 	{
+		expression *e = dynamic_cast<expression*>( exprs );
+		if( e )
+			*this = *e;
+		else
+			push_back( exprs );
+		push_back( n );
 	}
 
-	inline const node *value( void ) const { return _value; }
-	inline const node *prev( void ) const { return _prev; }
+	inline void push_back( node *n ) { _exprs.push_back( n ); }
+	inline size_t size( void ) const { return _exprs.size(); }
+	inline const node *at( int i ) const { return _exprs.at( i ); }
 
 private:
-	node *_value;
-	node *_prev;
+	vector<node *> _exprs;
 };
 
 ////////////////////////////////////////
@@ -182,17 +176,22 @@ private:
 class productions : public node
 {
 public:
-	productions( node *v, node *p )
-		: _value( v ), _prev( p )
+	productions( node *prods, node *n )
 	{
+		productions *p = dynamic_cast<productions*>( prods );
+		if( p )
+			*this = *p;
+		else
+			push_back( prods );
+		push_back( n );
 	}
 
-	inline const node *value( void ) const { return _value; }
-	inline const node *prev( void ) const { return _prev; }
+	inline void push_back( node *n ) { _prods.push_back( n ); }
+	inline size_t size( void ) const { return _prods.size(); }
+	inline const node *at( int i ) const { return _prods.at( i ); }
 
 private:
-	node *_value;
-	node *_prev;
+	vector<node *> _prods;
 };
 
 ////////////////////////////////////////
