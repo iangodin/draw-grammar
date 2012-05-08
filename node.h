@@ -41,6 +41,22 @@ public:
 
 ////////////////////////////////////////
 
+class other : public node
+{
+public:
+	other( const char *start, const char *end )
+		: _value( start, end )
+	{
+	}
+
+	inline const string &value( void ) const { return _value; }
+
+private:
+	string _value;
+};
+
+////////////////////////////////////////
+
 class literal : public node
 {
 public:
@@ -92,6 +108,25 @@ private:
 
 ////////////////////////////////////////
 
+class onemore : public node
+{
+public:
+	onemore( node *expr, node *sep = NULL )
+		: _expr( expr ), _sep( sep )
+	{
+	}
+
+	inline const node *expr( void ) const { return _expr; }
+	inline const node *sep( void ) const { return _sep; }
+
+private:
+	node *_expr;
+	node *_sep;
+
+};
+
+////////////////////////////////////////
+
 class repetition : public node
 {
 public:
@@ -104,7 +139,6 @@ public:
 
 private:
 	node *_expr;
-
 };
 
 ////////////////////////////////////////
@@ -136,20 +170,31 @@ class expression : public node
 {
 public:
 	expression( node *exprs, node *n )
+		: _short( true )
 	{
 		expression *e = dynamic_cast<expression*>( exprs );
 		if( e )
 			*this = *e;
 		else
+		{
+			literal *lit = dynamic_cast<literal*>( exprs );
+			if ( !lit || lit->value().size() > 3 )
+				_short = false;
 			push_back( exprs );
+		}
+		literal *lit = dynamic_cast<literal*>( n );
+		if ( !lit || lit->value().size() > 3 )
+			_short = false;
 		push_back( n );
 	}
 
+	inline bool is_short( void ) const { return _short; }
 	inline void push_back( node *n ) { _exprs.push_back( n ); }
 	inline size_t size( void ) const { return _exprs.size(); }
 	inline const node *at( int i ) const { return _exprs.at( i ); }
 
 private:
+	bool _short;
 	vector<node *> _exprs;
 };
 

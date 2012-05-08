@@ -65,6 +65,10 @@ ostream &operator<<( ostream &out, const node &node )
 	{
 		out << "{ " << *n->expr() << " }";
 	}
+	else if ( const onemore *n = dynamic_cast<const onemore*>( &node ) )
+	{
+		out << "< " << *n->expr() << " >";
+	}
 	else if ( const optional *n = dynamic_cast<const optional*>( &node ) )
 	{
 		out << "[ " << *n->expr() << " ]";
@@ -79,6 +83,10 @@ ostream &operator<<( ostream &out, const node &node )
 			out << '\'' << n->value() << '\'';
 		else
 			out << '\"' << n->value() << '\"';
+	}
+	else if ( const other *n = dynamic_cast<const other*>( &node ) )
+	{
+			out << '?' << n->value() << '?';
 	}
 	else
 		throw runtime_error( "unknown node type" );

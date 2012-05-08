@@ -5,6 +5,16 @@
 
 }
 
+start:
+	ebnf
+	{
+		$$ = $0;
+	}|
+	production
+	{
+		$$ = $0;
+	};
+
 ebnf:
 	title '{' productions '}' comment
 		{
@@ -67,6 +77,14 @@ factor:
 	'{' expression '}'
 		{
 			$$ = new repetition( $1 );
+		}|
+	'<' expression '>'
+		{
+			$$ = new onemore( $1 );
+		}|
+	'<' expression '~' expression '>'
+		{
+			$$ = new onemore( $1, $3 );
 		};
 
 identifier:
@@ -103,5 +121,9 @@ literal:
 	"\"[^\"]+\""
 		{
 			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, false );
+		}|
+	"\?[^\?]+\?"
+		{
+			$$ = new other( $n0.start_loc.s+1, $n0.end-1 );
 		};
 
