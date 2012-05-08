@@ -188,7 +188,7 @@ public:
 		push_back( n );
 	}
 
-	inline bool is_short( void ) const { return _short; }
+	inline bool is_short( void ) const { return _short && _exprs.size() > 2; }
 	inline void push_back( node *n ) { _exprs.push_back( n ); }
 	inline size_t size( void ) const { return _exprs.size(); }
 	inline const node *at( int i ) const { return _exprs.at( i ); }

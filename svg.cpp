@@ -32,8 +32,8 @@
 #define TEXT_PAD 8.F
 #define LINE_HEIGHT (TEXT_SIZE+TEXT_PAD)
 #define CIRCLE 4.F
-#define PADV 8.F
-#define PADH 8.F
+#define PADV 4.F
+#define PADH 4.F
 #define RADIUS 8.F
 #define OVER_HEIGHT (RADIUS*2+PADH*2)
 #define SPLIT_WIDTH (RADIUS*2+PADH)
@@ -101,7 +101,7 @@ compute_size( svg_context &ctxt, const node *node, bool &above )
 		expr.move_l_anchor( id.r_anchor() );
 		self.include( id );
 		self.include( expr );
-		self.include( expr.br_corner().move( PADH*2 + CIRCLE, 0 ) );
+		self.include( expr.br_corner().move( PADH*3 + CIRCLE, 0 ) );
 
 		point tl = self.tl_corner().negate();
 		id.move_by( tl );
@@ -113,24 +113,24 @@ compute_size( svg_context &ctxt, const node *node, bool &above )
 	{
 		if ( n->is_short() )
 		{
-			above = false;
 			for ( size_t i = 0; i < n->size(); ++i )
 			{
 				ctxt.push_state();
 				ctxt.use_left_rail = false;
 				ctxt.use_right_rail = false;
 				ctxt.dir = DOWN;
-				svg_box &e = compute_size( ctxt, n->at( i ), above );
+				bool new_above = false;
+				svg_box &e = compute_size( ctxt, n->at( i ), new_above );
 				e.move_to( self.tr_corner() );
 				self.include( e );
 				ctxt.pop_state();
 			}
-			self.set_y_anchor( -PADV );
-			self.include( point( 0, -(PADV*2) ) );
+			self.set_y_anchor( - std::max( PADV, RADIUS ) );
+			self.include( point( 0, -std::max( PADV, RADIUS )*2 ) );
 			if ( ctxt.dir == RIGHT )
-				self.include( self.br_corner().move( RADIUS*2, PADV*2 ) );
+				self.include( self.br_corner().move( RADIUS*2, std::max( PADV, RADIUS )*2 ) );
 			else
-				self.include( self.bl_corner().move( -RADIUS*2, PADV*2 ) );
+				self.include( self.bl_corner().move( -RADIUS*2, std::max( PADV, RADIUS )*2 ) );
 		}
 		else
 		{
@@ -417,7 +417,7 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 	svg_box &self = ctxt.data[node];
 	if ( self.width() > 0 && self.height() > 0 )
 	{
-		box( out, self.x(), self.y(), self.width()-1, self.height()-1, "test" );
+//		box( out, self.x(), self.y(), self.width()-1, self.height()-1, "test" );
 //		point p1 = self.l_anchor();
 //		point p2 = self.r_anchor();
 //		box( out, p1.x-2.5, p1.y-2.5, 2.5, 5, "lanchor" );
@@ -465,7 +465,7 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 			draw_svg( out, n->expr(), ctxt, above );
 			hline( out, i.l_anchor().move( PADH, 0 ), e.l_anchor(), "line" );
 		}
-		point end = e.r_anchor().move( PADH, 0 );
+		point end = e.r_anchor().move( PADH*2, 0 );
 
 		hline( out, e.r_anchor(), end, "line" );
 		circle( out, end.x + CIRCLE/2, end.y, CIRCLE, "end" );
@@ -477,55 +477,87 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 		push_translate( self.tl_corner() );
 		if ( n->is_short() )
 		{
-			above = false;
 			for ( size_t i = 0; i < n->size(); ++i )
 			{
 				ctxt.push_state();
 				ctxt.dir = DOWN;
-				draw_svg( out, n->at( i ), ctxt, above );
+				bool new_above = false;
+				draw_svg( out, n->at( i ), ctxt, new_above );
 				ctxt.pop_state();
 			}
 
 			if ( ctxt.dir == RIGHT )
 			{
-				point start = self.l_anchor().move( self.tl_corner().negate() );
-				point mid = self.br_corner().move( -RADIUS*2, -RADIUS ).move( self.tl_corner().negate() );
-				point end = self.r_anchor().move( self.tl_corner().negate() );
-				svg_box &s = ctxt.data[n->at(0)];
-				svg_box &e = ctxt.data[n->at(n->size()-1)];
+				if ( above )
+				{
+					point start = self.tl_anchor().move( self.tl_corner().negate() );
+					point end = self.tr_anchor().move( self.tl_corner().negate() );
+					svg_box &s = ctxt.data[n->at(0)];
+					svg_box &e = ctxt.data[n->at(n->size()-1)];
 
-				path( out, RIGHT, start, e.t_center(), DOWN, RADIUS, "line" );
-				path( out, DOWN, s.b_center(), mid, RIGHT, RADIUS, "line" );
-				path( out, RIGHT, mid, end, RIGHT, RADIUS, "line" );
+					path( out, DOWN, start, e.t_center(), DOWN, RADIUS, "line" );
+					path( out, DOWN, s.b_center(), end, UP, RADIUS, "line" );
+				}
+				else
+				{
+					point start = self.l_anchor().move( self.tl_corner().negate() );
+					point mid = self.br_corner().move( -RADIUS*2, -RADIUS ).move( self.tl_corner().negate() );
+					point end = self.r_anchor().move( self.tl_corner().negate() );
+					svg_box &s = ctxt.data[n->at(0)];
+					svg_box &e = ctxt.data[n->at(n->size()-1)];
+
+					path( out, RIGHT, start, e.t_center(), DOWN, RADIUS, "line" );
+					path( out, DOWN, s.b_center(), mid, RIGHT, RADIUS, "line" );
+					path( out, RIGHT, mid, end, RIGHT, RADIUS, "line" );
+				}
+
+				point top = self.r_anchor().move( self.tl_corner().negate() );
+				point bot = self.bl_corner().move( RADIUS*2, -RADIUS ).move( self.tl_corner().negate() );
 
 				for ( size_t i = 0; i < n->size(); ++i )
 				{
 					svg_box &b = ctxt.data[n->at(i)];
 					if( i > 0 )
-						path( out, DOWN, b.b_center(), point( b.b_center().x + RADIUS, mid.y ), RIGHT, RADIUS, "line" );
+						path( out, DOWN, b.b_center(), point( b.b_center().x + RADIUS, bot.y ), RIGHT, RADIUS, "line" );
 					if ( i+1 < n->size() )
-						path( out, RIGHT, point( b.t_center().x - RADIUS, start.y ), b.t_center(), DOWN, RADIUS, "line" );
+						path( out, RIGHT, point( b.t_center().x - RADIUS, top.y ), b.t_center(), DOWN, RADIUS, "line" );
 				}
 			}
 			else
 			{
-				point start = self.r_anchor().move( self.tl_corner().negate() );
-				point mid = self.bl_corner().move( RADIUS*2, -RADIUS ).move( self.tl_corner().negate() );
-				point end = self.l_anchor().move( self.tl_corner().negate() );
-				svg_box &s = ctxt.data[n->at(n->size()-1)];
-				svg_box &e = ctxt.data[n->at(0)];
+				if ( above )
+				{
+					point start = self.tr_anchor().move( self.tl_corner().negate() );
+					point end = self.tl_anchor().move( self.tl_corner().negate() );
+					svg_box &s = ctxt.data[n->at(n->size()-1)];
+					svg_box &e = ctxt.data[n->at(0)];
 
-				path( out, LEFT, start, e.t_center(), DOWN, RADIUS, "line" );
-				path( out, DOWN, s.b_center(), mid, LEFT, RADIUS, "line" );
-				path( out, LEFT, mid, end, LEFT, RADIUS, "line" );
+					path( out, DOWN, start, e.t_center(), DOWN, RADIUS, "line" );
+					path( out, DOWN, s.b_center(), end, UP, RADIUS, "line" );
+				}
+				else
+				{
+					point start = self.r_anchor().move( self.tl_corner().negate() );
+					point mid = self.bl_corner().move( RADIUS*2, -RADIUS ).move( self.tl_corner().negate() );
+					point end = self.l_anchor().move( self.tl_corner().negate() );
+					svg_box &s = ctxt.data[n->at(n->size()-1)];
+					svg_box &e = ctxt.data[n->at(0)];
+
+					path( out, LEFT, start, e.t_center(), DOWN, RADIUS, "line" );
+					path( out, DOWN, s.b_center(), mid, LEFT, RADIUS, "line" );
+					path( out, LEFT, mid, end, LEFT, RADIUS, "line" );
+				}
+
+				point top = self.r_anchor().move( self.tl_corner().negate() );
+				point bot = self.bl_corner().move( RADIUS*2, -RADIUS ).move( self.tl_corner().negate() );
 
 				for ( size_t i = 0; i < n->size(); ++i )
 				{
 					svg_box &b = ctxt.data[n->at(i)];
 					if( i > 0 )
-						path( out, UP, b.t_center(), point( b.t_center().x + RADIUS, start.y ), RIGHT, RADIUS, "line" );
+						path( out, UP, b.t_center(), point( b.t_center().x + RADIUS, top.y ), RIGHT, RADIUS, "line" );
 					if ( i+1 < n->size() )
-						path( out, DOWN, b.b_center(), point( b.b_center().x - RADIUS, mid.y ), LEFT, RADIUS, "line" );
+						path( out, DOWN, b.b_center(), point( b.b_center().x - RADIUS, bot.y ), LEFT, RADIUS, "line" );
 				}
 			}
 		}

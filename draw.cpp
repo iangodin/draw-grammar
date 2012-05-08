@@ -378,11 +378,46 @@ void path( ostream &out, Direction d1, const point &p1, const point &p2, Directi
 					path_arc( out, r, DOWN_RIGHT );
 					path_h_to( out, p2.x );
 					break;
+
 				case LEFT:
 					path_v_to( out, p2.y - r );
 					path_arc( out, r, DOWN_LEFT );
 					path_h_to( out, p2.x );
 					break;
+
+				case UP:
+					path_v_to( out, std::max( p1.y, p2.y ) );
+					if ( p2.x < p1.x )
+					{
+						path_arc( out, r, DOWN_LEFT );
+						path_h_to( out, p2.x+r );
+						path_arc( out, r, LEFT_UP );
+					}
+					else
+					{
+						path_arc( out, r, DOWN_RIGHT );
+						path_h_to( out, p2.x-r );
+						path_arc( out, r, RIGHT_UP );
+					}
+					path_v_to( out, p2.y );
+					break;
+
+				case DOWN:
+					path_v_to( out, std::max( p1.y, p2.y ) - r*2 );
+					if ( p2.x < p1.x )
+					{
+						path_arc( out, r, DOWN_LEFT );
+						path_h_to( out, p2.x+r );
+						path_arc( out, r, LEFT_DOWN );
+					}
+					else
+					{
+						path_arc( out, r, DOWN_RIGHT );
+						path_h_to( out, p2.x-r );
+						path_arc( out, r, RIGHT_DOWN );
+					}
+					break;
+
 			}
 			break;
 
