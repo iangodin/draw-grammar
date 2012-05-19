@@ -107,9 +107,9 @@ struct svg_box
 	{
 		float w = width(), h = height();
 		_p2.x = p.x;
-		_p2.y = p.y + _yanchor;
+		_p1.y = p.y - _yanchor;
 		_p1.x = _p2.x - w;
-		_p1.y = _p2.y - h;
+		_p2.y = _p1.y + h;
 	}
 
 	point l_anchor( void ) const { return point( _p1.x, _p1.y + _yanchor ); }

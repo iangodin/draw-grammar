@@ -32,8 +32,8 @@
 #define TEXT_PAD 8.F
 #define LINE_HEIGHT (TEXT_SIZE+TEXT_PAD)
 #define CIRCLE 4.F
-#define PADV 4.F
-#define PADH 4.F
+#define PADV 20.F
+#define PADH 20.F
 #define RADIUS 8.F
 #define OVER_HEIGHT (RADIUS*2+PADH*2)
 #define SPLIT_WIDTH (RADIUS*2+PADH)
@@ -79,13 +79,13 @@ compute_size( svg_context &ctxt, const node *node, bool &above )
 			ctxt.pop_state();
 		}
 
-		point tl = self.tl_corner().negate();
-		for ( size_t i = 0; i < n->size(); ++i )
-		{
-			svg_box &e = ctxt.data[n->at( i )];
-			e.move_by( tl );
-		}
-		self.move_by( tl );
+//		point tl = self.tl_corner().negate();
+//		for ( size_t i = 0; i < n->size(); ++i )
+//		{
+//			svg_box &e = ctxt.data[n->at( i )];
+//			e.move_by( tl );
+//		}
+//		self.move_by( tl );
 	}
 	else if ( const production *n = dynamic_cast<const production*>( node ) )
 	{
@@ -312,11 +312,17 @@ compute_size( svg_context &ctxt, const node *node, bool &above )
 
 			above = true;
 			svg_box &e = compute_size( ctxt, n->expr(), above );
+			ctxt.pop_state();
 
 			if ( above )
 				self.include( point( RADIUS - PADV, std::max( PADV + ARROW + PADV, PADV + ARROW/2 + RADIUS ) ) );
 			else
-				self.include( point( RADIUS*2, PADV*2 + ARROW ) );
+			{
+				if ( ctxt.use_left_rail )
+					self.include( point( 0, PADV*2 + ARROW ) );
+				else
+					self.include( point( RADIUS*2, PADV*2 + ARROW ) );
+			}
 			self.set_y_anchor( PADV + ARROW/2 );
 
 			e.move_to( self.br_corner() );
@@ -327,14 +333,16 @@ compute_size( svg_context &ctxt, const node *node, bool &above )
 				float delta = RADIUS*2 - ( e.l_anchor().y - self.l_anchor().y );
 				if ( delta > 0.F )
 					e.move_by( point( 0, delta ) );
-				self.include( e.br_corner().move( RADIUS*2, 0 ) );
+				if ( ctxt.use_right_rail )
+					self.include( e.br_corner() );
+				else
+					self.include( e.br_corner().move( RADIUS*2, 0 ) );
 			}
 
 			point tl = self.tl_corner().negate();
 			e.move_by( tl );
 			self.move_by( tl );
 		}
-		ctxt.pop_state();
 		above = false;
 	}
 	else if ( const identifier *n = dynamic_cast<const identifier*>( node ) )
@@ -417,6 +425,21 @@ compute_size( svg_context &ctxt, const node *node, bool &above )
 void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 {
 	svg_box &self = ctxt.data[node];
+	ctxt.push_state();
+
+	ctxt.left_rail += self.x();
+	ctxt.right_rail += self.x();
+	ctxt.rail_top += self.y();
+	ctxt.rail_bottom += self.y();
+
+//	push_translate( self.tl_corner() );
+	if ( ctxt.use_left_rail )
+		vline( out, point( ctxt.left_rail, ctxt.rail_top ), point( ctxt.left_rail, ctxt.rail_bottom ), "test" );
+	if ( ctxt.use_right_rail )
+		vline( out, point( ctxt.right_rail, ctxt.rail_top ), point( ctxt.right_rail, ctxt.rail_bottom ), "test" );
+	if ( ctxt.use_left_rail || ctxt.use_right_rail )
+		box( out, self.x(), self.y(), self.width()-1, self.height()-1, "test" );
+
 	if ( self.width() > 0 && self.height() > 0 )
 	{
 //		box( out, self.x(), self.y(), self.width()-1, self.height()-1, "test" );
@@ -425,6 +448,7 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 //		box( out, p1.x-2.5, p1.y-2.5, 2.5, 5, "lanchor" );
 //		box( out, p2.x, p2.y-2.5, 2.5, 5, "ranchor" );
 	}
+//	pop_translate();
 
 	if ( const ebnf *n = dynamic_cast<const ebnf*>( node ) )
 	{
@@ -483,6 +507,8 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 			{
 				ctxt.push_state();
 				ctxt.dir = DOWN;
+				ctxt.use_left_rail = false;
+				ctxt.use_right_rail = false;
 				bool new_above = false;
 				draw_svg( out, n->at( i ), ctxt, new_above );
 				ctxt.pop_state();
@@ -565,31 +591,36 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 		}
 		else
 		{
+			svg_box &s = ctxt.data[n->at(0)];
+			svg_box &e = ctxt.data[n->at(n->size()-1)];
+
 			bool new_above = false;
+			ctxt.push_state();
+			if ( !ctxt.use_left_rail )
+			{
+				ctxt.use_left_rail = true;
+				ctxt.left_rail = -s.l_anchor().x + RADIUS;
+				ctxt.rail_top = s.tl_anchor().y + self.y();
+				ctxt.rail_bottom = e.tl_anchor().y + self.y();
+			}
+			if ( !ctxt.use_right_rail )
+			{
+				ctxt.use_right_rail = true;
+				ctxt.right_rail = s.r_anchor().x - RADIUS;
+				for ( size_t i = 1; i < n->size(); ++i )
+					ctxt.right_rail = std::max( ctxt.data[n->at( i )].r_anchor().x - RADIUS, ctxt.right_rail );
+				ctxt.rail_top = s.tl_anchor().y + self.y();
+				ctxt.rail_bottom = e.tl_anchor().y;
+			}
+
 			for ( size_t i = 0; i < n->size(); ++i )
 			{
 				svg_box &box = ctxt.data[n->at( i )];
 				ctxt.push_state();
-
-				if ( !ctxt.use_left_rail )
-				{
-					ctxt.use_left_rail = true;
-					ctxt.left_rail = -box.l_anchor().x + RADIUS;
-					ctxt.rail_top = self.tl_anchor().y;
-					ctxt.rail_bottom = self.br_anchor().y;
-				}
-				if ( !ctxt.use_right_rail )
-				{
-					ctxt.use_right_rail = true;
-					ctxt.right_rail = box.r_anchor().x - RADIUS;
-					ctxt.rail_top = self.tl_anchor().y;
-					ctxt.rail_bottom = self.br_anchor().y;
-				}
-
 				draw_svg( out, n->at( i ), ctxt, new_above );
-
 				ctxt.pop_state();
 			}
+			ctxt.pop_state();
 
 			Direction sd = RIGHT;
 			Direction ed = RIGHT;
@@ -616,9 +647,6 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 				sd = DOWN;
 				ed = UP;
 			}
-
-			svg_box &s = ctxt.data[n->at(0)];
-			svg_box &e = ctxt.data[n->at(n->size()-1)];
 
 			if ( ctxt.use_left_rail )
 				path( out, DOWN, point( start.x, e.l_anchor().y - RADIUS ), e.l_anchor(), RIGHT, RADIUS, "line" );
@@ -662,29 +690,34 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 	{
 		above = false;
 		push_translate( self.tl_corner() );
+		ctxt.push_state();
+
 		for ( size_t i = 0; i < n->size(); ++i )
 		{
-//			svg_box &e = ctxt.data[n->at( i )];
-//			point next = self.r_anchor();
+			svg_box &e = ctxt.data[n->at( i )];
 
 			ctxt.push_state();
+			ctxt.right_rail -= e.x();
+			ctxt.left_rail -= e.x();
+			ctxt.rail_bottom -= e.y();
+			ctxt.rail_top -= e.y();
 			if ( i > 0 )
 				ctxt.use_left_rail = false;
-			if ( i+1 < n->size() )
-			{
-				ctxt.use_right_rail = false;
-//				next = ctxt.data[n->at(i+1)].l_anchor();
-			}
 
-//			hline( out, e.r_anchor().move( -PADH, 0 ), next, "line" );
+			if ( i+1 < n->size() )
+				ctxt.use_right_rail = false;
+
 			draw_svg( out, n->at( i ), ctxt, above );
 			ctxt.pop_state();
 		}
+		ctxt.pop_state();
 		pop_translate();
 	}
 	else if ( const repetition *n = dynamic_cast<const repetition*>( node ) )
 	{
 		ctxt.push_state();
+		ctxt.use_left_rail = false;
+		ctxt.use_right_rail = false;
 		push_translate( self.tl_corner() );
 		{
 			ctxt.reverse();
@@ -778,6 +811,9 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 		push_translate( self.tl_corner() );
 		{
 			above = true;
+			svg_box &e = ctxt.data[n->expr()];
+			ctxt.rail_top += e.y();
+			ctxt.rail_bottom += e.y();
 			draw_svg( out, n->expr(), ctxt, above );
 		}
 		pop_translate();
@@ -804,8 +840,19 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 		{
 			point lanch = e.l_anchor().move( self.tl_corner() );
 			point ranch = e.r_anchor().move( self.tl_corner() );
-			path( out, RIGHT, start, lanch, RIGHT, RADIUS, "line" );
-			path( out, RIGHT, ranch, end, RIGHT, RADIUS, "line" );
+
+			if ( ctxt.use_left_rail )
+				path( out, DOWN, point( ctxt.left_rail + self.x(), lanch.y - RADIUS ), lanch, RIGHT, RADIUS, "line" );
+			else
+				path( out, RIGHT, start, lanch, RIGHT, RADIUS, "line" );
+
+			if ( ctxt.use_right_rail )
+			{
+				path( out, RIGHT, ranch, point( ctxt.right_rail + self.x(), std::min( ranch.y - RADIUS, ctxt.rail_bottom ) ), UP, RADIUS, "line" );
+				circle( out, ctxt.right_rail + self.x(), ctxt.rail_bottom + self.y(), 5, "line" );
+			}
+			else
+				path( out, RIGHT, ranch, end, RIGHT, RADIUS, "line" );
 		}
 		above = false;
 	}
@@ -902,6 +949,7 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 		text_center( out, p1.x, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), "other" );
 		above = false;
 	}
+	ctxt.pop_state();
 }
 
 ////////////////////////////////////////
