@@ -140,11 +140,11 @@ compute_size( svg_context &ctxt, const node *node, bool &above )
 				for ( size_t i = 0; i < n->size(); ++i )
 				{
 					ctxt.push_state();
+					ctxt.use_left_rail = true;
+					ctxt.use_right_rail = true;
 					svg_box &e = compute_size( ctxt, n->at( i ), new_above );
 					if ( i == 0 )
-					{
 						e.move_l_anchor( self.l_anchor() );
-					}
 					else if ( i == 1 && !above )
 					{
 						point p1 = self.bl_corner();
@@ -164,8 +164,10 @@ compute_size( svg_context &ctxt, const node *node, bool &above )
 				}
 				else
 				{
-					self.include( point( -RADIUS*2, 0 ) );
-					self.include( self.br_corner().move( point( RADIUS*2, 0 ) ) );
+					if ( !ctxt.use_left_rail )
+						self.include( point( -RADIUS*2, 0 ) );
+					if ( !ctxt.use_right_rail )
+						self.include( self.br_corner().move( point( RADIUS*2, 0 ) ) );
 				}
 			}
 			ctxt.pop_state();
@@ -566,19 +568,20 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 			bool new_above = false;
 			for ( size_t i = 0; i < n->size(); ++i )
 			{
+				svg_box &box = ctxt.data[n->at( i )];
 				ctxt.push_state();
 
 				if ( !ctxt.use_left_rail )
 				{
 					ctxt.use_left_rail = true;
-					ctxt.left_rail = self.l_anchor().x;
+					ctxt.left_rail = -box.l_anchor().x + RADIUS;
 					ctxt.rail_top = self.tl_anchor().y;
 					ctxt.rail_bottom = self.br_anchor().y;
 				}
 				if ( !ctxt.use_right_rail )
 				{
 					ctxt.use_right_rail = true;
-					ctxt.right_rail = self.r_anchor().x;
+					ctxt.right_rail = box.r_anchor().x - RADIUS;
 					ctxt.rail_top = self.tl_anchor().y;
 					ctxt.rail_bottom = self.br_anchor().y;
 				}
@@ -588,12 +591,26 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 				ctxt.pop_state();
 			}
 
-			point start = self.l_anchor().move( self.tl_corner().negate() );
-			point end = self.r_anchor().move( self.tl_corner().negate() );
 			Direction sd = RIGHT;
 			Direction ed = RIGHT;
+			point start = self.l_anchor().move( self.tl_corner().negate() );
+			point end = self.r_anchor().move( self.tl_corner().negate() );
+			if( ctxt.use_left_rail )
+			{
+				start.x = ctxt.left_rail;
+				sd = DOWN;
+			}
+
+			if ( ctxt.use_right_rail )
+			{
+				end.x = ctxt.right_rail;
+				ed = UP;
+			}
+
 			if ( above )
 			{
+				ctxt.use_left_rail = false;
+				ctxt.use_right_rail = false;
 				start = self.tl_anchor().move( self.tl_corner().negate() );
 				end = self.tr_anchor().move( self.tl_corner().negate() );
 				sd = DOWN;
@@ -603,15 +620,33 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 			svg_box &s = ctxt.data[n->at(0)];
 			svg_box &e = ctxt.data[n->at(n->size()-1)];
 
-			path( out, sd, start, e.l_anchor(), RIGHT, RADIUS, "line" );
-			path( out, RIGHT, e.r_anchor(), end, ed, RADIUS, "line" );
+			if ( ctxt.use_left_rail )
+				path( out, DOWN, point( start.x, e.l_anchor().y - RADIUS ), e.l_anchor(), RIGHT, RADIUS, "line" );
+			else
+				path( out, sd, start, e.l_anchor(), RIGHT, RADIUS, "line" );
+
+			if ( ctxt.use_right_rail )
+				path( out, RIGHT, e.r_anchor(), point( end.x, e.r_anchor().y - RADIUS ), ed, RADIUS, "line" );
+			else
+				path( out, RIGHT, e.r_anchor(), end, ed, RADIUS, "line" );
 
 			if( !above )
 			{
-				hline( out, start, s.l_anchor(), "line" );
-				hline( out, s.r_anchor(), end, "line" );
-				start.x += RADIUS;
-				end.x -= RADIUS;
+				if ( ctxt.use_left_rail )
+					path( out, sd, start, s.l_anchor(), RIGHT, RADIUS, "line" );
+				else
+				{
+					hline( out, start, s.l_anchor(), "line" );
+					start.x += RADIUS;
+				}
+
+				if ( ctxt.use_right_rail )
+					path( out, RIGHT, s.r_anchor(), point( end.x, s.r_anchor().y - RADIUS ), UP, RADIUS, "line" );
+				else
+				{
+					hline( out, s.r_anchor(), end, "line" );
+					end.x -= RADIUS;
+				}
 			}
 
 			for ( size_t i = above ? 0 : 1; i < n->size()-1; ++i )
@@ -751,12 +786,12 @@ void draw_svg( ostream &out, const node *node, svg_context &ctxt, bool &above )
 		svg_box &e = ctxt.data[n->expr()];
 		point start = self.l_anchor();
 		point end = self.r_anchor();
+
+		hline( out, start, end, "line" );
 		if ( ctxt.dir == RIGHT )
 			arrow_right( out, self.c_anchor().move( ARROW/2, 0 ), 0, ARROW, "line", "arrow" );
 		else
 			arrow_left( out, self.c_anchor().move( ARROW/2, 0 ), 0, ARROW, "line", "arrow" );
-
-		hline( out, start, end, "line" );
 
 		if ( above )
 		{
