@@ -9,5 +9,5 @@ srcs = {
 	DParse( "ebnf.g" ),
 }
 
-Executable( "ebnf2svg", Compile( srcs ), LinkSys( "dparse" ) );
+Executable( "draw_ebnf", Compile( srcs ), LinkSys( "dparse" ) );
 
