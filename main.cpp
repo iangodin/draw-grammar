@@ -23,7 +23,9 @@ syntax( struct D_Parser *parser )
 	size_t lnum = parser->loc.line;
 	size_t col = parser->loc.col;
 	char *tmp = parser->loc.s - col;
-	char *end = strchrnul( tmp, '\n' );
+	char *end = strchr( tmp, '\n' );
+	if ( end == NULL )
+		end = tmp + strlen( tmp );
 	string text( tmp, size_t( end - tmp ) );
 	string indent( text );
 	for ( char &c: indent )
