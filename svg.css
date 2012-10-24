@@ -1,0 +1,53 @@
+
+text {
+	font-family: "Courier New", Courier, monospace;
+	font-weight: bold;
+}
+
+text.title {
+	stroke: none;
+	fill: red;
+	font-size: 28px;
+	font-weight: bold;
+}
+
+text.production {
+	stroke: none;
+	fill: black;
+}
+
+text.literal {
+	stroke: none;
+	fill: red;
+}
+
+text.ident {
+	stroke: none;
+	fill: blue;
+}
+
+text.other {
+	stroke: none;
+	fill: green;
+}
+
+rect {
+	stroke: black;
+	fill: none;
+}
+
+path.line {
+	stroke: black;
+	fill: none;
+}
+
+path.arrow {
+	stroke: none;
+	fill: black;
+}
+
+circle.end {
+	stroke: none;
+	fill: black;
+}
+
