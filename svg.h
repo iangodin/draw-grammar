@@ -184,7 +184,7 @@ private:
 
 	struct state
 	{
-		state( svg_context &ctxt )
+		state( const svg_context &ctxt )
 			: dir( ctxt.dir ), x( ctxt.use_left_rail ), y( ctxt.use_right_rail ), l( ctxt.left_rail ), r( ctxt.right_rail ), t( ctxt.rail_top ), b( ctxt.rail_bottom )
 		{
 		}
