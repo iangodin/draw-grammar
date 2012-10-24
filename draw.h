@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -46,6 +47,18 @@ enum Arc
 	UP_LEFT,
 	DOWN_RIGHT,
 	DOWN_LEFT
+};
+
+enum Class
+{
+	LINE,
+	ARROW,
+	BOX,
+	PRODUCTION,
+	LITERAL,
+	IDENTIFIER,
+	OTHER,
+	END
 };
 
 struct point
@@ -100,38 +113,57 @@ struct point
 	float x, y;
 };
 
-void push_translate( const point &p );
-void pop_translate( void );
+class draw
+{
+public:
+	draw( ostream &out );
+	virtual ~draw( void );
 
-void id_begin( ostream &out, float x, float y, float w, float h, const string &name );
-void id_end( ostream &out );
+	virtual void push_translate( const point &p );
+	virtual void pop_translate( void );
 
-void link_begin( ostream &out, const string &name );
-void link_end( ostream &out );
+	virtual void id_begin( float x, float y, float w, float h, const string &name ) = 0;
+	virtual void id_end() = 0;
 
-void circle( ostream &out, float x, float y, float r, const string &cl );
-void box( ostream &out, float x, float y, float w, float h, const string &cl );
-void round( ostream &out, float x, float y, float w, float h, const string &c );
-void text( ostream &out, float x, float y, float w, float h, const string &text, const string &cl );
-void text_center( ostream &out, float x, float y, float w, float h, const string &text, const string &cl );
-void hline( ostream &out, const point &p1, const point &p2, const string &cl );
-void vline( ostream &out, const point &p1, const point &p2, const string &cl );
-void path( ostream &out, point &p1, point &p2, float r, Arc dir, const string &cl );
-void path( ostream &out, Direction d1, const point &p1, const point &p2, Direction d2, float r, const string &cl );
+	virtual void link_begin( const string &name ) = 0;
+	virtual void link_end() = 0;
 
-void arrow_left( ostream &out, const point &p, float l, float size, const string &cl1, const string &cl2 );
-void arrow_right( ostream &out, const point &p, float l, float size, const string &cl1, const string &cl2 );
-void arrow_down( ostream &out, const point &p, float l, float size, const string &cl1, const string &cl2 );
+	virtual void circle( float x, float y, float r, Class cl ) = 0;
+	virtual void box( float x, float y, float w, float h, Class cl ) = 0;
+	virtual void round( float x, float y, float w, float h, Class c ) = 0;
 
-void path_begin( ostream &out, float x, float y );
+	virtual void text( float x, float y, float w, float h, const string &text, Class cl ) = 0;
+	virtual void text_center( float x, float y, float w, float h, const string &text, Class cl ) = 0;
 
-void path_h_to( ostream &out, float x );
-void path_v_to( ostream &out, float y );
-void path_line_to( ostream &out, float x, float y );
-void path_arc( ostream &out, float r, Arc a );
-void path_arrow_left( ostream &out, float size );
-void path_arrow_right( ostream &out, float size );
-void path_arrow_down( ostream &out, float size );
+	virtual void hline( const point &p1, const point &p2, Class cl );
+	virtual void vline( const point &p1, const point &p2, Class cl );
 
-void path_end( ostream &out, const string &cl );
+	virtual void path( const point &p1, const point &p2, float r, Arc dir, Class cl );
+	virtual void path( Direction d1, const point &p1, const point &p2, Direction d2, float r, Class cl );
+
+	virtual void arrow_left( const point &p, float l, float size, Class cl1, Class cl2 );
+	virtual void arrow_right( const point &p, float l, float size, Class cl1, Class cl2 );
+	virtual void arrow_down( const point &p, float l, float size, Class cl1, Class cl2 );
+
+	virtual void path_begin( float x, float y, Class cl ) = 0;
+
+	virtual void path_h_to( float x ) = 0;
+	virtual void path_v_to( float y ) = 0;
+	virtual void path_line_to( float x, float y ) = 0;
+	virtual void path_arc( float r, Arc a ) = 0;
+	virtual void path_arrow_left( float size ) = 0;
+	virtual void path_arrow_right( float size ) = 0;
+	virtual void path_arrow_down( float size ) = 0;
+
+	virtual void path_end( void ) = 0;
+
+protected:
+	ostream &out;
+
+	inline float xx( float x ) { return x - dx.back(); }
+	inline float yy( float y ) { return y - dy.back(); }
+
+	vector<float> dx;
+	vector<float> dy;
+};
 

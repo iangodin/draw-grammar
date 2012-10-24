@@ -31,43 +31,28 @@ using namespace std;
 
 ////////////////////////////////////////
 
-string escape( const string &t )
+draw::draw( ostream &o )
+	: out( o ), dx( 1, 0.F ), dy( 1, 0.F )
 {
-	string ret;
-	for ( size_t i = 0; i < t.size(); ++i )
-	{
-		switch ( t[i] )
-		{
-			case '<':
-				ret.append( "&lt;" );
-				break;
-			case '>':
-				ret.append( "&gt;" );
-				break;
-			default:
-				ret.push_back( t[i] );
-				break;
-		}
-	}
-
-	return ret;
 }
-
-vector<float> dx( 1, 0.F );
-vector<float> dy( 1, 0.F );
-
-float xx( float x ) { return x - dx.back(); }
-float yy( float y ) { return y - dy.back(); }
 
 ////////////////////////////////////////
 
-void push_translate( const point &p )
+draw::~draw( void )
+{
+}
+
+////////////////////////////////////////
+
+void draw::push_translate( const point &p )
 {
 	dx.push_back( dx.back() - p.x );
 	dy.push_back( dy.back() - p.y );
 }
 
-void pop_translate( void )
+////////////////////////////////////////
+
+void draw::pop_translate( void )
 {
 	if ( dx.empty() || dy.empty() )
 		throw runtime_error( "empty stack" );
@@ -77,152 +62,75 @@ void pop_translate( void )
 
 ////////////////////////////////////////
 
-void id_begin( ostream &out, float x, float y, float w, float h, const string &name )
+void draw::hline( const point &p1, const point &p2, Class cl )
 {
-	out << "<div>";
-	out << "<a name=\"" << name << "\">\n";
-	out << "  <svg overflow=\"visible\" "
-		"xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" "
-		"xmlns:svg=\"http://www.w3.org/2000/svg\" "
-		"xmlns:xlink=\"http://www.w3.org/1999/xlink\" "
-		"width=\"" << w << "px\" height=\"" << h << "px\">\n";
-	dx.push_back( dx.back() + x );
-	dy.push_back( dy.back() + y );
+	path_begin( p1.x, p1.y, cl );
+	path_h_to( p2.x );
+	path_end();
 }
 
 ////////////////////////////////////////
 
-void id_end( ostream &out )
+void draw::vline( const point &p1, const point &p2, Class cl )
 {
-	dx.pop_back();
-	dy.pop_back();
-	out << "  </svg>\n";
-	out << "</a>";
-	out << "</div>\n";
+	path_begin( p1.x, p1.y, cl );
+	path_v_to( p2.y );
+	path_end();
 }
 
 ////////////////////////////////////////
 
-void link_begin( ostream &out, const string &name )
+void draw::path( const point &p1, const point &p2, float r, Arc dir, Class cl )
 {
-	out << "  <a xlink:href=\"#" << name << "\">\n";
-}
-
-////////////////////////////////////////
-
-void link_end( ostream &out )
-{
-	out << "  </a>\n";
-}
-
-////////////////////////////////////////
-
-void box( ostream &out, float x, float y, float w, float h, const string &cl )
-{
-	out << "  <rect x=\"" << xx(x+0.5F) << "\" y=\"" << yy(y+0.5F) << "\" width=\"" << w << "\" height=\"" << h << "\" class=\"" << cl << "\"></rect>\n";
-}
-
-////////////////////////////////////////
-
-void circle( ostream &out, float x, float y, float r, const string &cl )
-{
-	out << "  <circle cx=\"" << xx(x+0.5F) << "\" cy=\"" << yy(y+0.5F) << "\" r=\"" << r << "\" class=\"" << cl << "\" />\n";
-}
-
-////////////////////////////////////////
-
-void round( ostream &out, float x, float y, float w, float h, const string &cl )
-{
-	out << "  <rect rx=\"" << h/2.F << "\" ry=\"" << h/2.F << "\" x=\"" << xx(x + 0.5F) << "\" y=\"" << yy(y + 0.5F) << "\" width=\"" << w << "\" height=\"" << h << "\" class=\"" << cl << "\"></rect>\n";
-}
-
-////////////////////////////////////////
-
-void text( ostream &out, float x, float y, float w, float h, const string &text, const string &cl )
-{
-	out << "  <text x=\"" << xx(x) << "\" y=\"" << yy(y + h) << "\" class=\"" << cl << "\">";
-	out << escape( text ) << "</text>\n";
-}
-
-////////////////////////////////////////
-
-void text_center( ostream &out, float x, float y, float w, float h, const string &text, const string &cl )
-{
-	out << "  <text x=\"" << xx(x + w/2.F) << "\" y=\"" << yy(y + h) << "\" text-anchor=\"middle\" class=\"" << cl << "\">";
-	out << escape( text ) << "</text>\n";
-}
-
-////////////////////////////////////////
-
-void hline( ostream &out, const point &p1, const point &p2, const string &cl )
-{
-	path_begin( out, p1.x, p1.y );
-	path_h_to( out, p2.x );
-	path_end( out, cl );
-}
-
-////////////////////////////////////////
-
-void vline( ostream &out, const point &p1, const point &p2, const string &cl )
-{
-	path_begin( out, p1.x, p1.y );
-	path_v_to( out, p2.y );
-	path_end( out, cl );
-}
-
-////////////////////////////////////////
-
-void path( ostream &out, const point &p1, const point &p2, float r,  Arc dir, const string &cl )
-{
-	path_begin( out, p1.x, p1.y );
+	path_begin( p1.x, p1.y, cl );
 	switch ( dir )
 	{
 		case RIGHT_UP:
 		case RIGHT_DOWN:
-			path_h_to( out, p2.x - r );
+			path_h_to( p2.x - r );
 			break;
 
 		case LEFT_UP:
 		case LEFT_DOWN:
-			path_h_to( out, p2.x + r );
+			path_h_to( p2.x + r );
 			break;
 
 		case UP_RIGHT:
 		case UP_LEFT:
-			path_v_to( out, p2.y + r );
+			path_v_to( p2.y + r );
 			break;
 
 		case DOWN_RIGHT:
 		case DOWN_LEFT:
-			path_v_to( out, p2.y - r );
+			path_v_to( p2.y - r );
 			break;
 	}
 
-	path_arc( out, r, dir );
+	path_arc( r, dir );
 	switch ( dir )
 	{
 		case RIGHT_UP:
 		case RIGHT_DOWN:
 		case LEFT_UP:
 		case LEFT_DOWN:
-			path_v_to( out, p2.y );
+			path_v_to( p2.y );
 			break;
 
 		case UP_RIGHT:
 		case UP_LEFT:
 		case DOWN_RIGHT:
 		case DOWN_LEFT:
-			path_h_to( out, p2.x );
+			path_h_to( p2.x );
 			break;
 	}
-	path_end( out, cl );
+	path_end();
 }
 
 ////////////////////////////////////////
 
-void path( ostream &out, Direction d1, const point &p1, const point &p2, Direction d2, float r, const string &cl )
+void draw::path( Direction d1, const point &p1, const point &p2, Direction d2, float r, Class cl )
 {
-	path_begin( out, p1.x, p1.y );
+	path_begin( p1.x, p1.y, cl );
 
 	switch ( d1 )
 	{
@@ -234,50 +142,50 @@ void path( ostream &out, Direction d1, const point &p1, const point &p2, Directi
 					{
 						if ( p1.y < p2.y )
 						{
-							path_arc( out, r, RIGHT_DOWN );
-							path_v_to( out, p2.y - r );
-							path_arc( out, r, DOWN_RIGHT );
-							path_h_to( out, p2.x );
+							path_arc( r, RIGHT_DOWN );
+							path_v_to( p2.y - r );
+							path_arc( r, DOWN_RIGHT );
+							path_h_to( p2.x );
 						}
 						else
 						{
-							path_h_to( out, p2.x - r*2 );
-							path_arc( out, r, RIGHT_UP );
-							path_v_to( out, p2.y + r );
-							path_arc( out, r, UP_RIGHT );
+							path_h_to( p2.x - r*2 );
+							path_arc( r, RIGHT_UP );
+							path_v_to( p2.y + r );
+							path_arc( r, UP_RIGHT );
 						}
 					}
 					break;
 
 				case LEFT:
-					path_h_to( out, std::max( p1.x, p2.x ) );
+					path_h_to( std::max( p1.x, p2.x ) );
 					if ( p1.y < p2.y )
 					{
-						path_arc( out, r, RIGHT_DOWN );
-						path_v_to( out, p2.y - r );
-						path_arc( out, r, DOWN_LEFT );
-						path_h_to( out, p2.x );
+						path_arc( r, RIGHT_DOWN );
+						path_v_to( p2.y - r );
+						path_arc( r, DOWN_LEFT );
+						path_h_to( p2.x );
 					}
 					else
 					{
-						path_h_to( out, std::max( p1.x, p2.x ) );
-						path_arc( out, r, RIGHT_UP );
-						path_v_to( out, p2.y + r );
-						path_arc( out, r, UP_LEFT );
-						path_h_to( out, p2.x );
+						path_h_to( std::max( p1.x, p2.x ) );
+						path_arc( r, RIGHT_UP );
+						path_v_to( p2.y + r );
+						path_arc( r, UP_LEFT );
+						path_h_to( p2.x );
 					}
 					break;
 
 				case UP:
-					path_h_to( out, p2.x - r );
-					path_arc( out, r, RIGHT_UP );
-					path_v_to( out, p2.y );
+					path_h_to( p2.x - r );
+					path_arc( r, RIGHT_UP );
+					path_v_to( p2.y );
 					break;
 
 				case DOWN:
-					path_h_to( out, p2.x - r );
-					path_arc( out, r, RIGHT_DOWN );
-					path_v_to( out, p2.y );
+					path_h_to( p2.x - r );
+					path_arc( r, RIGHT_DOWN );
+					path_v_to( p2.y );
 					break;
 
 
@@ -290,20 +198,20 @@ void path( ostream &out, Direction d1, const point &p1, const point &p2, Directi
 			switch ( d2 )
 			{
 				case RIGHT:
-					path_h_to( out, std::min( p1.x, p2.x ) );
+					path_h_to( std::min( p1.x, p2.x ) );
 					if ( p1.y < p2.y )
 					{
-						path_arc( out, r, LEFT_DOWN );
-						path_v_to( out, p2.y - r );
-						path_arc( out, r, DOWN_RIGHT );
-						path_h_to( out, p2.x );
+						path_arc( r, LEFT_DOWN );
+						path_v_to( p2.y - r );
+						path_arc( r, DOWN_RIGHT );
+						path_h_to( p2.x );
 					}
 					else
 					{
-						path_arc( out, r, LEFT_UP );
-						path_v_to( out, p2.y + r );
-						path_arc( out, r, UP_RIGHT );
-						path_h_to( out, p2.x );
+						path_arc( r, LEFT_UP );
+						path_v_to( p2.y + r );
+						path_arc( r, UP_RIGHT );
+						path_h_to( p2.x );
 					}
 					break;
 
@@ -312,48 +220,48 @@ void path( ostream &out, Direction d1, const point &p1, const point &p2, Directi
 					{
 						if ( p1.y < p2.y )
 						{
-							path_arc( out, r, LEFT_DOWN );
-							path_v_to( out, p2.y - r );
-							path_arc( out, r, DOWN_LEFT );
-							path_h_to( out, p2.x );
+							path_arc( r, LEFT_DOWN );
+							path_v_to( p2.y - r );
+							path_arc( r, DOWN_LEFT );
+							path_h_to( p2.x );
 						}
 						else
 						{
-							path_h_to( out, p2.x - r*2 );
-							path_arc( out, r, LEFT_UP );
-							path_v_to( out, p2.y + r );
-							path_arc( out, r, UP_LEFT );
+							path_h_to( p2.x - r*2 );
+							path_arc( r, LEFT_UP );
+							path_v_to( p2.y + r );
+							path_arc( r, UP_LEFT );
 						}
 					}
 					else
 					{
 						if ( p1.y < p2.y )
 						{
-							path_arc( out, r, LEFT_DOWN );
-							path_v_to( out, p2.y - r );
-							path_arc( out, r, DOWN_LEFT );
-							path_h_to( out, p2.x );
+							path_arc( r, LEFT_DOWN );
+							path_v_to( p2.y - r );
+							path_arc( r, DOWN_LEFT );
+							path_h_to( p2.x );
 						}
 						else
 						{
-							path_h_to( out, p2.x + r*2 );
-							path_arc( out, r, LEFT_UP );
-							path_v_to( out, p2.y + r );
-							path_arc( out, r, UP_LEFT );
+							path_h_to( p2.x + r*2 );
+							path_arc( r, LEFT_UP );
+							path_v_to( p2.y + r );
+							path_arc( r, UP_LEFT );
 						}
 					}
 					break;
 
 				case UP:
-					path_h_to( out, p2.x - r );
-					path_arc( out, r, LEFT_UP );
-					path_v_to( out, p2.y );
+					path_h_to( p2.x - r );
+					path_arc( r, LEFT_UP );
+					path_v_to( p2.y );
 					break;
 
 				case DOWN:
-					path_h_to( out, p2.x + r );
-					path_arc( out, r, LEFT_DOWN );
-					path_v_to( out, p2.y );
+					path_h_to( p2.x + r );
+					path_arc( r, LEFT_DOWN );
+					path_v_to( p2.y );
 					break;
 			}
 			break;
@@ -362,9 +270,9 @@ void path( ostream &out, Direction d1, const point &p1, const point &p2, Directi
 			switch ( d2 )
 			{
 				case RIGHT:
-					path_v_to( out, p2.y + r );
-					path_arc( out, r, UP_RIGHT );
-					path_h_to( out, p2.x );
+					path_v_to( p2.y + r );
+					path_arc( r, UP_RIGHT );
+					path_h_to( p2.x );
 					break;
 
 				default:
@@ -376,47 +284,47 @@ void path( ostream &out, Direction d1, const point &p1, const point &p2, Directi
 			switch ( d2 )
 			{
 				case RIGHT:
-					path_v_to( out, p2.y - r );
-					path_arc( out, r, DOWN_RIGHT );
-					path_h_to( out, p2.x );
+					path_v_to( p2.y - r );
+					path_arc( r, DOWN_RIGHT );
+					path_h_to( p2.x );
 					break;
 
 				case LEFT:
-					path_v_to( out, p2.y - r );
-					path_arc( out, r, DOWN_LEFT );
-					path_h_to( out, p2.x );
+					path_v_to( p2.y - r );
+					path_arc( r, DOWN_LEFT );
+					path_h_to( p2.x );
 					break;
 
 				case UP:
-					path_v_to( out, std::max( p1.y, p2.y ) );
+					path_v_to( std::max( p1.y, p2.y ) );
 					if ( p2.x < p1.x )
 					{
-						path_arc( out, r, DOWN_LEFT );
-						path_h_to( out, p2.x+r );
-						path_arc( out, r, LEFT_UP );
+						path_arc( r, DOWN_LEFT );
+						path_h_to( p2.x+r );
+						path_arc( r, LEFT_UP );
 					}
 					else
 					{
-						path_arc( out, r, DOWN_RIGHT );
-						path_h_to( out, p2.x-r );
-						path_arc( out, r, RIGHT_UP );
+						path_arc( r, DOWN_RIGHT );
+						path_h_to( p2.x-r );
+						path_arc( r, RIGHT_UP );
 					}
-					path_v_to( out, p2.y );
+					path_v_to( p2.y );
 					break;
 
 				case DOWN:
-					path_v_to( out, std::max( p1.y, p2.y ) - r*2 );
+					path_v_to( std::max( p1.y, p2.y ) - r*2 );
 					if ( p2.x < p1.x )
 					{
-						path_arc( out, r, DOWN_LEFT );
-						path_h_to( out, p2.x+r );
-						path_arc( out, r, LEFT_DOWN );
+						path_arc( r, DOWN_LEFT );
+						path_h_to( p2.x+r );
+						path_arc( r, LEFT_DOWN );
 					}
 					else
 					{
-						path_arc( out, r, DOWN_RIGHT );
-						path_h_to( out, p2.x-r );
-						path_arc( out, r, RIGHT_DOWN );
+						path_arc( r, DOWN_RIGHT );
+						path_h_to( p2.x-r );
+						path_arc( r, RIGHT_DOWN );
 					}
 					break;
 
@@ -427,128 +335,55 @@ void path( ostream &out, Direction d1, const point &p1, const point &p2, Directi
 			break;
 	}
 
-	path_end( out, cl );
+	path_end();
 }
 
 ////////////////////////////////////////
 
-void arrow_left( ostream &out, const point &p, float l, float size, const string &cl1, const string &cl2 )
+void draw::arrow_left( const point &p, float l, float size, Class cl1, Class cl2 )
 {
 	if ( l > size/2 )
 	{
-		path_begin( out, p.x, p.y );
+		path_begin( p.x, p.y, cl1 );
 		out << " h " << -l + size/2;
-		path_end( out, cl1 );
+		path_end();
 	}
 
-	path_begin( out, p.x - l, p.y );
-	path_arrow_left( out, size );
-	path_end( out, cl2 );
+	path_begin( p.x - l, p.y, cl2 );
+	path_arrow_left( size );
+	path_end();
 }
 
 ////////////////////////////////////////
 
-void arrow_right( ostream &out, const point &p, float l, float size, const string &cl1, const string &cl2 )
+void draw::arrow_right( const point &p, float l, float size, Class cl1, Class cl2 )
 {
 	if ( l > size/2 )
 	{
-		path_begin( out, p.x, p.y );
+		path_begin( p.x, p.y, cl1 );
 		out << " h " << l - size/2;
-		path_end( out, cl1 );
+		path_end();
 	}
 
-	path_begin( out, p.x + l, p.y );
-	path_arrow_right( out, size );
-	path_end( out, cl2 );
+	path_begin( p.x + l, p.y, cl2 );
+	path_arrow_right( size );
+	path_end();
 }
 
 ////////////////////////////////////////
 
-void arrow_down( ostream &out, const point &p, float l, float size, const string &cl1, const string &cl2 )
+void draw::arrow_down( const point &p, float l, float size, Class cl1, Class cl2 )
 {
 	if ( l > size/2 )
 	{
-		path_begin( out, p.x, p.y );
+		path_begin( p.x, p.y, cl1 );
 		out << " v " << l - size/2;
-		path_end( out, cl1 );
+		path_end();
 	}
 
-	path_begin( out, p.x, p.y + l );
-	path_arrow_down( out, size );
-	path_end( out, cl2 );
-}
-
-////////////////////////////////////////
-
-void path_begin( ostream &out, float x, float y )
-{
-	out << "  <path d=\"M " << xx(x) << ' ' << yy(y);
-}
-
-////////////////////////////////////////
-
-void path_h_to( ostream &out, float x )
-{
-	out << " H " << xx(x);
-}
-
-////////////////////////////////////////
-
-void path_v_to( ostream &out, float y )
-{
-	out << " V " << yy(y);
-}
-
-////////////////////////////////////////
-
-void path_line_to( ostream &out, float x, float y )
-{
-	out << " L " << xx(x) << ' ' << yy(y);
-}
-
-////////////////////////////////////////
-
-void path_arc( ostream &out, float r, Arc a )
-{
-	switch ( a )
-	{
-		case RIGHT_UP: out << " a " << r << ' ' << r << " 0 0 0 " << r << ' ' << -r; break;
-		case RIGHT_DOWN: out << " a " << r << ' ' << r << " 0 0 1 " << r << ' ' << r; break;
-		case LEFT_UP: out << " a " << r << ' ' << r << " 0 0 1 " << -r << ' ' << -r; break;
-		case LEFT_DOWN: out << " a " << r << ' ' << r << " 0 0 0 " << -r << ' ' << r; break;
-		case UP_RIGHT: out << " a " << r << ' ' << r << " 0 0 1 " << r << ' ' << -r; break;
-		case UP_LEFT: out << " a " << r << ' ' << r << " 0 0 0 " << -r << ' ' << -r; break;
-		case DOWN_RIGHT: out << " a " << r << ' ' << r << " 0 0 0 " << r << ' ' << r; break;
-		case DOWN_LEFT: out << " a " << r << ' ' << r << " 0 0 1 " << -r << ' ' << r; break;
-	}
-}
-
-////////////////////////////////////////
-
-void path_arrow_left( ostream &out, float size )
-{
-	out << " l " << size << ' ' << size/2 << " 0 " << -size << " z";
-}
-
-////////////////////////////////////////
-
-void path_arrow_right( ostream &out, float size )
-{
-	out << " l " << -size << ' ' << -size/2 << " 0 " << size << ' ' << size << ' ' << -size/2 << " z";
-}
-
-////////////////////////////////////////
-
-void path_arrow_down( ostream &out, float size )
-{
-	out << " l " << -size/2 << ' ' << -size << ' ' << size << " 0 " << " z";
-}
-
-////////////////////////////////////////
-
-void path_end( ostream &out, const string &cl )
-{
-	out <<  "\" class=\"" << cl << "\"/>\n";
+	path_begin( p.x, p.y + l, cl2 );
+	path_arrow_down( size );
+	path_end();
 }
 
 ////////////////////////////////////////

@@ -22,192 +22,46 @@
 
 #pragma once
 
-#include <cmath>
-#include <map>
+#include <iostream>
+#include <string>
 #include <vector>
-#include "draw.h"
 
-class node;
+#include "draw.h"
 
 using namespace std;
 
-struct svg_box
+class draw_svg : public draw
 {
-	svg_box( void )
-		: _p1( 0, 0 ), _p2( 0, 0 ), _xanchor( 0 ), _yanchor( 0 )
-	{
-	}
+public:
+	draw_svg( ostream &o );
+	virtual ~draw_svg( void );
 
-	svg_box( float x, float y )
-		: _p1( x, y ), _p2( x, y ), _xanchor( 0 ), _yanchor( 0 )
-	{
-	}
+	virtual void id_begin( float x, float y, float w, float h, const string &name );
+	virtual void id_end();
 
-	void init( float xa, float ya )
-	{
-		_xanchor = xa;
-		_yanchor = ya;
-		_p1.x = _p1.y = 0.F;
-		_p2.x = _p2.y = 0.F;
-	}
+	virtual void link_begin( const string &name );
+	virtual void link_end();
 
-	void set_y_anchor( float y )
-	{
-		_yanchor = y;
-	}
+	virtual void circle( float x, float y, float r, Class cl );
+	virtual void box( float x, float y, float w, float h, Class cl );
+	virtual void round( float x, float y, float w, float h, Class c );
+	virtual void text( float x, float y, float w, float h, const string &text, Class cl );
+	virtual void text_center( float x, float y, float w, float h, const string &text, Class cl );
 
-	void include( const svg_box &o, bool keep_anchor = true )
-	{
-		if ( keep_anchor )
-		{
-			if ( o._p1.y < _p1.y )
-				_yanchor += _p1.y - o._p1.y;
-		}
-		_p1 = _p1.min( o._p1 );
-		_p2 = _p2.max( o._p2 );
-	}
+	virtual void path_begin( float x, float y, Class cl );
 
-	void include( const point &p, bool keep_anchor = true )
-	{
-		if ( keep_anchor )
-		{
-			if ( p.y < _p1.y )
-				_yanchor += _p1.y - p.y;
-		}
-		_p1 = _p1.min( p );
-		_p2 = _p2.max( p );
-	}
+	virtual void path_h_to( float x );
+	virtual void path_v_to( float y );
+	virtual void path_line_to( float x, float y );
+	virtual void path_arc( float r, Arc a );
+	virtual void path_arrow_left( float size );
+	virtual void path_arrow_right( float size );
+	virtual void path_arrow_down( float size );
 
-	void move_to( const point &p )
-	{
-		_p2.x += p.x - _p1.x;
-		_p2.y += p.y - _p1.y;
-		_p1.x += p.x;
-		_p1.y += p.y;
-	}
+	virtual void path_end( void );
 
-	void move_by( const point &p )
-	{
-		_p1.x += p.x;
-		_p2.x += p.x;
-		_p1.y += p.y;
-		_p2.y += p.y;
-	}
-
-	void move_l_anchor( const point &p )
-	{
-		float w = width(), h = height();
-		_p1.x = p.x;
-		_p1.y = p.y - _yanchor;
-		_p2.x = _p1.x + w;
-		_p2.y = _p1.y + h;
-	}
-
-	void move_r_anchor( const point &p )
-	{
-		float w = width(), h = height();
-		_p2.x = p.x;
-		_p1.y = p.y - _yanchor;
-		_p1.x = _p2.x - w;
-		_p2.y = _p1.y + h;
-	}
-
-	point l_anchor( void ) const { return point( _p1.x, _p1.y + _yanchor ); }
-	point r_anchor( void ) const { return point( _p2.x, _p1.y + _yanchor ); }
-	point c_anchor( void ) const { return point( (_p1.x + _p2.x )/2, _p1.y + _yanchor ); }
-
-	point tl_anchor( void ) const { return point( _p1.x + _xanchor, _p1.y ); }
-	point bl_anchor( void ) const { return point( _p1.x + _xanchor, _p2.y ); }
-
-	point tr_anchor( void ) const { return point( _p2.x - _xanchor, _p1.y ); }
-	point br_anchor( void ) const { return point( _p2.x - _xanchor, _p2.y ); }
-
-	point t_center( void ) const { return point( ( _p1.x + _p2.x )/2, _p1.y ); }
-	point b_center( void ) const { return point( ( _p1.x + _p2.x )/2, _p2.y ); }
-
-	point tl_corner( void ) const { return _p1; }
-	point tr_corner( void ) const { return point( _p2.x, _p1.y ); }
-	point bl_corner( void ) const { return point( _p1.x, _p2.y ); }
-	point br_corner( void ) const { return _p2; }
-
-	float x( void ) const { return _p1.x; }
-	float y( void ) const { return _p1.y; }
-
-	void set_width( float w ) { _p2.x = _p1.x + w; }
-	void set_height( float h ) { _p2.y = _p1.y + h; }
-
-	float width( void ) const { return _p2.x - _p1.x; }
-	float height( void ) const { return _p2.y - _p1.y; }
-
-private:
-	point _p1, _p2;
-	float _xanchor;
-	float _yanchor;
+protected:
+	string escape( const string &t );
+	string clname( Class cl );
 };
-
-struct svg_context
-{
-	svg_context( void )
-		: dir( NONE ), use_left_rail( false ), use_right_rail( false )
-	{
-	}
-
-	map<const node *,svg_box> data;
-
-	Direction dir;
-
-	bool use_left_rail;
-	float left_rail;
-
-	bool use_right_rail;
-	float right_rail;
-
-	float rail_top;
-	float rail_bottom;
-
-	void push_state( void ) { _stack.push_back( state( *this ) ); }
-	void pop_state( void ) { _stack.back().pop( *this ); _stack.pop_back(); }
-
-	void reverse( void )
-	{
-		switch ( dir )
-		{
-			case RIGHT: dir = LEFT; break;
-			case LEFT: dir = RIGHT; break;
-			case UP: dir = DOWN; break;
-			case DOWN: dir = UP; break;
-			case NONE: break;
-		}
-	}
-
-private:
-
-	struct state
-	{
-		state( const svg_context &ctxt )
-			: dir( ctxt.dir ), x( ctxt.use_left_rail ), y( ctxt.use_right_rail ), l( ctxt.left_rail ), r( ctxt.right_rail ), t( ctxt.rail_top ), b( ctxt.rail_bottom )
-		{
-		}
-
-		void pop( svg_context &ctxt )
-		{
-			ctxt.dir = dir;
-			ctxt.use_left_rail = x;
-			ctxt.use_right_rail = y;
-			ctxt.left_rail = l;
-			ctxt.right_rail = r;
-			ctxt.rail_top = t;
-			ctxt.rail_bottom = b;
-		}
-
-		Direction dir;
-		bool x, y;
-		float l, r;
-		float t, b;
-	};
-
-	vector<state> _stack;
-};
-
-void svg_generate( ostream &out, const node *ebnf );
 

@@ -6,6 +6,7 @@ srcs = {
 	"print.cpp",
 	"draw.cpp",
 	"svg.cpp",
+	"render.cpp",
 	DParse( "ebnf.g" ),
 }
 
