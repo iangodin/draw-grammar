@@ -355,7 +355,6 @@ void path( ostream &out, Direction d1, const point &p1, const point &p2, Directi
 					path_arc( out, r, LEFT_DOWN );
 					path_v_to( out, p2.y );
 					break;
-
 			}
 			break;
 
@@ -367,6 +366,9 @@ void path( ostream &out, Direction d1, const point &p1, const point &p2, Directi
 					path_arc( out, r, UP_RIGHT );
 					path_h_to( out, p2.x );
 					break;
+
+				default:
+					throw runtime_error( "Not yet implemented" );
 			}
 			break;
 
