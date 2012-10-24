@@ -250,6 +250,7 @@ string draw_svg::clname( Class cl )
 		case LINE: return "\"line\"";
 		case ARROW: return "\"arrow\"";
 		case BOX: return "\"box\"";
+		case TITLE: return "\"title\"";
 		case PRODUCTION: return "\"prod\"";
 		case LITERAL: return "\"literal\"";
 		case IDENTIFIER: return "\"ident\"";

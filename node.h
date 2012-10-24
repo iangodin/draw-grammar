@@ -41,52 +41,24 @@ public:
 
 ////////////////////////////////////////
 
-class other : public node
-{
-public:
-	other( const char *start, const char *end )
-		: _value( start, end )
-	{
-	}
-
-	inline const string &value( void ) const { return _value; }
-
-private:
-	string _value;
-};
-
-////////////////////////////////////////
-
 class literal : public node
 {
 public:
-	literal( const char *start, const char *end, bool single )
-		: _value( start, end ), _single( single )
+	literal( const char *start, const char *end, char quote )
+		: _value( start, end ), _quote( quote )
 	{
 	}
 
-	inline bool single( void ) const { return _single; }
+	literal( char quote )
+		: _quote( quote )
+	{
+	}
+	inline char quote( void ) const { return _quote; }
 	inline const string &value( void ) const { return _value; }
 
 private:
 	string _value;
-	bool _single;
-};
-
-////////////////////////////////////////
-
-class identifier : public node
-{
-public:
-	identifier( const char *start, const char *end )
-		: _value( start, end )
-	{
-	}
-
-	inline const string &value( void ) const { return _value; }
-
-private:
-	string _value;
+	char _quote;
 };
 
 ////////////////////////////////////////

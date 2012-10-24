@@ -90,23 +90,23 @@ factor:
 identifier:
 	"[a-zA-Z][a-zA-Z0-9_]*"
 		{
-			$$ = new identifier( $n0.start_loc.s, $n0.end );
+			$$ = new literal( $n0.start_loc.s, $n0.end, '\0' );
 		};
 
 title:
 	// nothing
 		{
-			$$ = NULL;
+			$$ = new literal( 'T' );
 		}|
-	literal
+	"\"[^\"]+\""
 		{
-			$$ = $0;
+			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, 'T' );
 		};
 
 comment:
 	// nothing
 		{
-			$$ = NULL;
+			$$ = new literal( '\'' );
 		}|
 	literal
 		{
@@ -116,14 +116,14 @@ comment:
 literal:
 	"\'[^']+\'"
 		{
-			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, true );
+			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, '\'' );
 		}|
 	"\"[^\"]+\""
 		{
-			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, false );
+			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, '\"' );
 		}|
-	"\?[^\?]+\?"
+	"\*[^\*]+\*"
 		{
-			$$ = new other( $n0.start_loc.s+1, $n0.end-1 );
+			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, '*' );
 		};
 

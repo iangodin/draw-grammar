@@ -21,6 +21,7 @@
 //
 
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 
 #include "svg.h"
@@ -33,14 +34,14 @@
 #define TEXT_PAD 8.F
 #define LINE_HEIGHT (TEXT_SIZE+TEXT_PAD)
 #define CIRCLE 4.F
-#define PADV 10.F
+#define PADV 8.F
 #define PADH 10.F
 #define RADIUS 10.F
 #define OVER_HEIGHT (RADIUS*2+PADH*2)
 #define SPLIT_WIDTH (RADIUS*2+PADH)
 #define ARROW_SIZE 10.F
 #define SPACING 0.F
-#define TEXT_RATIO 0.45F
+#define TEXT_RATIO 0.35F
 
 ////////////////////////////////////////
 
@@ -336,29 +337,6 @@ compute_size( render_context &ctxt, const node *node, bool &above )
 		}
 		above = false;
 	}
-	else if ( const identifier *n = dynamic_cast<const identifier*>( node ) )
-	{
-		switch( ctxt.dir )
-		{
-			case NONE:
-				self.set_width( float( n->value().size() ) * LINE_HEIGHT * TEXT_RATIO + PADH );
-				self.set_height( LINE_HEIGHT + PADV * 2.F );
-				break;
-
-			case RIGHT:
-			case LEFT:
-				self.set_width( float( n->value().size() + 1 ) * LINE_HEIGHT * TEXT_RATIO + ARROW_SIZE + PADH * 2.F );
-				self.set_height( LINE_HEIGHT + PADV * 2.F );
-				break;
-
-			case UP:
-			case DOWN:
-				self.set_width( float( n->value().size() + 1 ) * LINE_HEIGHT * TEXT_RATIO + PADH * 2.F );
-				self.set_height( LINE_HEIGHT + ARROW_SIZE + PADV * 2.F );
-				break;
-		}
-		above = false;
-	}
 	else if ( const literal *n = dynamic_cast<const literal*>( node ) )
 	{
 		switch ( ctxt.dir )
@@ -370,36 +348,13 @@ compute_size( render_context &ctxt, const node *node, bool &above )
 
 			case RIGHT:
 			case LEFT:
-				self.set_width( float( n->value().size() + 3 ) * LINE_HEIGHT * TEXT_RATIO + ARROW_SIZE + PADH * 2.F );
+				self.set_width( float( n->value().size() + 2 ) * LINE_HEIGHT * TEXT_RATIO + ARROW_SIZE + PADH * 2.F );
 				self.set_height( LINE_HEIGHT + PADV * 2.F );
 				break;
 
 			case UP:
 			case DOWN:
-				self.set_width( float( n->value().size() + 3 ) * LINE_HEIGHT * TEXT_RATIO + PADH * 2.F );
-				self.set_height( LINE_HEIGHT + ARROW_SIZE + PADV * 2.F );
-				break;
-		}
-		above = false;
-	}
-	else if ( const other *n = dynamic_cast<const other*>( node ) )
-	{
-		switch ( ctxt.dir )
-		{
-			case NONE:
-				self.set_width( float( n->value().size() + 1 ) * LINE_HEIGHT * TEXT_RATIO + PADH * 2.F );
-				self.set_height( LINE_HEIGHT + PADV * 2.F );
-				break;
-
-			case RIGHT:
-			case LEFT:
-				self.set_width( float( n->value().size() + 1 ) * LINE_HEIGHT * TEXT_RATIO + ARROW_SIZE + PADH * 2.F );
-				self.set_height( LINE_HEIGHT + PADV * 2.F );
-				break;
-
-			case UP:
-			case DOWN:
-				self.set_width( float( n->value().size() + 1 ) * LINE_HEIGHT * TEXT_RATIO + PADH * 2.F );
+				self.set_width( float( n->value().size() + 2 ) * LINE_HEIGHT * TEXT_RATIO + PADH * 2.F );
 				self.set_height( LINE_HEIGHT + ARROW_SIZE + PADV * 2.F );
 				break;
 		}
@@ -825,47 +780,27 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 		}
 		above = false;
 	}
-	else if ( const identifier *n = dynamic_cast<const identifier*>( node ) )
-	{
-		point p1 = self.tl_corner().move( PADH, PADV );
-		point p2 = self.br_corner().move( -PADH, -PADV );
-
-		switch ( ctxt.dir )
-		{
-			case NONE:
-			case UP:
-				break;
-
-			case DOWN:
-				p1 = p1.move( 0, ARROW_SIZE );
-				dc.arrow_down( self.t_center(), PADV + ARROW_SIZE, ARROW_SIZE, LINE, ARROW );
-				dc.vline( self.b_center().move( 0, -PADV ), self.b_center(), LINE );
-				break;
-			case LEFT:
-				p2 = p2.move( -ARROW_SIZE, 0 );
-				dc.arrow_left( self.r_anchor(), PADH + ARROW_SIZE, ARROW_SIZE, LINE, ARROW );
-				dc.hline( self.l_anchor(), self.l_anchor().move( PADH, 0 ), LINE );
-				break;
-			case RIGHT:
-				p1 = p1.move( ARROW_SIZE, 0 );
-				dc.arrow_right( self.l_anchor(), PADH + ARROW_SIZE, ARROW_SIZE, LINE, ARROW );
-				dc.hline( self.r_anchor(), self.r_anchor().move( -PADH, 0 ), LINE );
-				break;
-		}
-
-		if ( ctxt.dir != NONE )
-			dc.box( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y, BOX );
-		dc.text_center( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), IDENTIFIER );
-		above = false;
-	}
 	else if ( const literal *n = dynamic_cast<const literal*>( node ) )
 	{
 		point p1 = self.tl_corner().move( PADH, PADV );
 		point p2 = self.br_corner().move( -PADH, -PADV );
 
+		Class cl = LITERAL;
+		switch ( n->quote() )
+		{
+			case '\0': cl = IDENTIFIER; break;
+			case '\"': cl = LITERAL; break;
+			case '*': cl = OTHER; break;
+			case 'T': cl = TITLE; break;
+		}
+
 		switch ( ctxt.dir )
 		{
 			case NONE:
+				if ( cl != TITLE )
+					cl = PRODUCTION;
+				break;
+
 			case UP:
 				break;
 
@@ -886,37 +821,30 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 				break;
 		}
 
-		if ( ctxt.dir != NONE )
-			dc.round( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y, BOX );
-		dc.text_center( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), LITERAL );
-		above = false;
-	}
-	else if ( const other *n = dynamic_cast<const other*>( node ) )
-	{
-		point p1 = self.tl_corner().move( PADH, PADV );
-		point p2 = self.br_corner().move( -PADH, -PADV );
-
-		switch ( ctxt.dir )
+		switch ( cl )
 		{
-			case NONE:
-			case UP:
-			case DOWN:
+			case PRODUCTION:
+			case TITLE:
+				dc.text( p1.x + PADH, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), cl );
 				break;
-			case LEFT:
-				p2 = p2.move( -ARROW_SIZE, 0 );
-				dc.arrow_left( self.r_anchor(), PADH + ARROW_SIZE, ARROW_SIZE, LINE, ARROW );
-				dc.hline( self.l_anchor(), self.l_anchor().move( PADH, 0 ), LINE );
+
+			case IDENTIFIER:
+				dc.box( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y, cl );
+				dc.text_center( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), cl );
 				break;
-			case RIGHT:
-				p1 = p1.move( ARROW_SIZE, 0 );
-				dc.arrow_right( self.l_anchor(), PADH + ARROW_SIZE, ARROW_SIZE, LINE, ARROW );
-				dc.hline( self.r_anchor(), self.r_anchor().move( -PADH, 0 ), LINE );
+
+			default:
+				dc.round( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y, cl );
+				dc.text_center( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), cl );
 				break;
 		}
-		if ( ctxt.dir != NONE )
-			dc.round( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y, BOX );
-		dc.text_center( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), OTHER );
 		above = false;
+	}
+	else
+	{
+		stringstream tmp;
+		tmp << (void*)node << ' ' << *node;
+		throw runtime_error( string( "Unknown node type: " ) + tmp.str() );
 	}
 	ctxt.pop_state();
 }

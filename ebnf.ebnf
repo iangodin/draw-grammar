@@ -4,9 +4,12 @@
 	production = identifier "=" expression ( "." | ";" ) .
 	expression = term { "|" term } .
 	term       = factor { factor } .
-	factor     = identifier | literal | "[" expression "]" | "(" expression ")" | "{" expression "}" | "<" expression ">" .
-	identifier = <character> .
+	factor     = identifier | literal | optional | '(' expression ')' | repetition | onemore .
+	optional   = '[' expression ']' .
+	repetition = '{' expression '}' .
+	onemore    = '<' expression [ '~' expression ] '>' .
+	identifier = < *character* > .
 	title      = literal .
 	comment    = literal .
-	literal    = "'" < character > "'" | '"' <character> '"' .
+	literal    = "'" < *character* > "'" | '"' < *character* > '"' | '*' < *character* > '*'.
 }
