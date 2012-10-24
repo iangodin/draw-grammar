@@ -345,7 +345,7 @@ void draw::arrow_left( const point &p, float l, float size, Class cl1, Class cl2
 	if ( l > size/2 )
 	{
 		path_begin( p.x, p.y, cl1 );
-		out << " h " << -l + size/2;
+		path_h_by( -l + size/2 );
 		path_end();
 	}
 
@@ -361,7 +361,7 @@ void draw::arrow_right( const point &p, float l, float size, Class cl1, Class cl
 	if ( l > size/2 )
 	{
 		path_begin( p.x, p.y, cl1 );
-		out << " h " << l - size/2;
+		path_h_by( l - size/2 );
 		path_end();
 	}
 
@@ -377,7 +377,7 @@ void draw::arrow_down( const point &p, float l, float size, Class cl1, Class cl2
 	if ( l > size/2 )
 	{
 		path_begin( p.x, p.y, cl1 );
-		out << " v " << l - size/2;
+		path_v_by( l - size/2 );
 		path_end();
 	}
 

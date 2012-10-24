@@ -139,6 +139,20 @@ void draw_svg::path_begin( float x, float y, Class cl )
 
 ////////////////////////////////////////
 
+void draw_svg::path_h_by( float x )
+{
+	out << " h " << x;
+}
+
+////////////////////////////////////////
+
+void draw_svg::path_v_by( float y )
+{
+	out << " v " << y;
+}
+
+////////////////////////////////////////
+
 void draw_svg::path_h_to( float x )
 {
 	out << " H " << xx(x);
@@ -153,7 +167,7 @@ void draw_svg::path_v_to( float y )
 
 ////////////////////////////////////////
 
-void draw_svg::path_line_to( float x, float y )
+void draw_svg::path_to( float x, float y )
 {
 	out << " L " << xx(x) << ' ' << yy(y);
 }

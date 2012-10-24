@@ -30,11 +30,11 @@
 
 using namespace std;
 
-class draw_svg : public draw
+class draw_tikz : public draw
 {
 public:
-	draw_svg( ostream &o );
-	virtual ~draw_svg( void );
+	draw_tikz( ostream &o );
+	virtual ~draw_tikz( void );
 
 	virtual void id_begin( float x, float y, float w, float h, const string &name );
 	virtual void id_end();
@@ -65,5 +65,6 @@ public:
 protected:
 	string escape( const string &t );
 	string clname( Class cl );
+	float em( float x );
 };
 

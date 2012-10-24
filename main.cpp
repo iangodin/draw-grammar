@@ -7,6 +7,7 @@
 #include "node.h"
 #include "print.h"
 #include "svg.h"
+#include "tikz.h"
 #include "render.h"
 #include <dparse.h>
 
@@ -98,7 +99,7 @@ int main( int argc, char *argv[] )
 {
 	node *node = parse( cin );
 //	cout << *node << endl;
-	draw_svg dc( cout );
+	draw_tikz dc( cout );
 	render( dc, node );
 }
 

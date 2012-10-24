@@ -147,9 +147,11 @@ public:
 
 	virtual void path_begin( float x, float y, Class cl ) = 0;
 
+	virtual void path_h_by( float x ) = 0;
+	virtual void path_v_by( float y ) = 0;
 	virtual void path_h_to( float x ) = 0;
 	virtual void path_v_to( float y ) = 0;
-	virtual void path_line_to( float x, float y ) = 0;
+	virtual void path_to( float x, float y ) = 0;
 	virtual void path_arc( float r, Arc a ) = 0;
 	virtual void path_arrow_left( float size ) = 0;
 	virtual void path_arrow_right( float size ) = 0;
