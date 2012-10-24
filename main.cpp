@@ -99,10 +99,19 @@ parse( istream &in )
 
 int main( int argc, char *argv[] )
 {
-	node *node = parse( cin );
-//	cout << *node << endl;
-	draw_tikz dc( cout );
-	render( dc, node );
+	try
+	{
+		node *node = parse( cin );
+		draw_svg dc( cout );
+		render( dc, node );
+		return 0;
+	}
+	catch ( std::exception &e )
+	{
+		cerr << "ERROR: " << e.what() << endl;
+	}
+
+	return -1;
 }
 
 
