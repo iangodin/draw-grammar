@@ -41,7 +41,7 @@
 #define SPLIT_WIDTH (RADIUS*2+PADH)
 #define ARROW_SIZE 10.F
 #define SPACING 0.F
-#define TEXT_RATIO 0.35F
+#define TEXT_RATIO 0.38F
 
 ////////////////////////////////////////
 
