@@ -256,6 +256,7 @@ string draw_svg::clname( Class cl )
 		case IDENTIFIER: return "\"ident\"";
 		case OTHER: return "\"other\"";
 		case END: return "\"end\"";
+		case TEST: return "\"test\"";
 	}
 
 	return "\"unknown\"";

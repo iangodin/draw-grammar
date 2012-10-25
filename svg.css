@@ -36,6 +36,11 @@ rect {
 	fill: none;
 }
 
+rect.test {
+	stroke: red;
+	fill: rgba(255,0,0,0.25);
+}
+
 path.line {
 	stroke: black;
 	fill: none;

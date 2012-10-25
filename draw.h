@@ -59,7 +59,8 @@ enum Class
 	LITERAL,
 	IDENTIFIER,
 	OTHER,
-	END
+	END,
+	TEST
 };
 
 struct point
