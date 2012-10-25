@@ -37,10 +37,7 @@
 #define PADV 8.F
 #define PADH 10.F
 #define RADIUS 10.F
-#define OVER_HEIGHT (RADIUS*2+PADH*2)
-#define SPLIT_WIDTH (RADIUS*2+PADH)
 #define ARROW_SIZE 10.F
-#define SPACING 0.F
 #define TEXT_RATIO 0.38F
 
 ////////////////////////////////////////
