@@ -379,11 +379,12 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 		ctxt.dir = NONE;
 		above = false;
 		ctxt.push_state();
-//		render_box &title = ctxt.data[n->title()];
 		dc.push_translate( self.tl_corner() );
-		render( dc, n->title(), ctxt, above );
+		if( n->title() )
+			render( dc, n->title(), ctxt, above );
 		render( dc, n->prods(), ctxt, above );
-		render( dc, n->comment(), ctxt, above );
+		if ( n->comment() )
+			render( dc, n->comment(), ctxt, above );
 		dc.pop_translate();
 		ctxt.pop_state();
 	}

@@ -112,7 +112,7 @@ identifier:
 title:
 	// nothing
 		{
-			$$ = new literal( 'T' );
+			$$ = NULL;
 		}|
 	"\"[^\"]+\""
 		{
@@ -122,7 +122,7 @@ title:
 comment:
 	// nothing
 		{
-			$$ = new literal( '\'' );
+			$$ = NULL;
 		}|
 	literal
 		{
