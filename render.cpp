@@ -769,7 +769,7 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 			point ranch = e.r_anchor().move( self.tl_corner() );
 
 			if ( ctxt.use_left_rail )
-				dc.path( DOWN, point( ctxt.left_rail, lanch.y - RADIUS ), lanch, RIGHT, RADIUS, LINE );
+				dc.path( DOWN, point( ctxt.left_rail, std::min( ctxt.rail_bottom, lanch.y - RADIUS ) ), lanch, RIGHT, RADIUS, LINE );
 			else
 				dc.path( RIGHT, start, lanch, RIGHT, RADIUS, LINE );
 
