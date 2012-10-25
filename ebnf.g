@@ -35,6 +35,10 @@ production:
 	identifier '=' expression '.'
 		{
 			$$ = new production( $0, $2 );
+		}|
+	identifier ':' expression ';'
+		{
+			$$ = new production( $0, $2 );
 		};
 
 expression:
@@ -85,6 +89,18 @@ factor:
 	'<' expression '~' expression '>'
 		{
 			$$ = new onemore( $1, $3 );
+		}|
+	factor '*'
+		{
+			$$ = new repetition( $0 );
+		}|
+	factor '+'
+		{
+			$$ = new onemore( $0 );
+		}|
+	factor '?'
+		{
+			$$ = new optional( $0 );
 		};
 
 identifier:
@@ -122,7 +138,7 @@ literal:
 		{
 			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, '\"' );
 		}|
-	"\*[^\*]+\*"
+	"\`[^\`]+\`"
 		{
 			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, '*' );
 		};
