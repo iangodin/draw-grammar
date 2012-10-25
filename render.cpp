@@ -425,6 +425,11 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 	else if ( const expression *n = dynamic_cast<const expression*>( node ) )
 	{
 		dc.push_translate( self.tl_corner() );
+		ctxt.left_rail -= self.tl_corner().x;
+		ctxt.right_rail -= self.tl_corner().x;
+		ctxt.rail_top -= self.tl_corner().y;
+		ctxt.rail_bottom -= self.tl_corner().y;
+
 		if ( n->is_short() )
 		{
 			for ( size_t i = 0; i < n->size(); ++i )
@@ -577,7 +582,7 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 				dc.path( sd, start, e.l_anchor(), RIGHT, RADIUS, LINE );
 
 			if ( ctxt.use_right_rail )
-				dc.path( RIGHT, e.r_anchor(), point( end.x, e.r_anchor().y - RADIUS ), ed, RADIUS, LINE );
+				dc.path( RIGHT, e.r_anchor(), point( end.x, std::min( ctxt.rail_bottom, e.r_anchor().y - RADIUS ) ), ed, RADIUS, LINE );
 			else
 				dc.path( RIGHT, e.r_anchor(), end, ed, RADIUS, LINE );
 
@@ -592,7 +597,9 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 				}
 
 				if ( ctxt.use_right_rail )
-					dc.path( RIGHT, s.r_anchor(), point( end.x, s.r_anchor().y - RADIUS ), UP, RADIUS, LINE );
+				{
+					dc.hline( s.r_anchor(), point( self.r_anchor().x - self.tl_corner().x, s.r_anchor().y - RADIUS ), LINE );
+				}
 				else
 				{
 					dc.hline( s.r_anchor(), end, LINE );
