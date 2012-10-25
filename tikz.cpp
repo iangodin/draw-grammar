@@ -80,7 +80,7 @@ void draw_tikz::link_end( void )
 
 void draw_tikz::box( float x, float y, float w, float h, Class cl )
 {
-	out << "  \\draw (" << em(xx(x)) << "em," << em(yy(y)) << "em) rectangle (" << em(xx(x+w)) << "em," << em(yy(y+h)) << "em);\n";
+	out << "  " << clname(cl) << " (" << em(xx(x)) << "em," << em(yy(y)) << "em) rectangle (" << em(xx(x+w)) << "em," << em(yy(y+h)) << "em);\n";
 }
 
 ////////////////////////////////////////
@@ -94,21 +94,21 @@ void draw_tikz::circle( float x, float y, float r, Class cl )
 
 void draw_tikz::round( float x, float y, float w, float h, Class cl )
 {
-	out << "  \\draw [rounded corners = " << em(h/2.F) << "em] (" << em(xx(x)) << "em," << em(yy(y)) << "em) rectangle (" << em(xx(x+w)) << "em," << em(yy(y+h)) << "em);\n";
+	out << "  " << clname( cl ) << "[rounded corners = " << em(h/2.F) << "em] (" << em(xx(x)) << "em," << em(yy(y)) << "em) rectangle (" << em(xx(x+w)) << "em," << em(yy(y+h)) << "em);\n";
 }
 
 ////////////////////////////////////////
 
 void draw_tikz::text( float x, float y, float w, float h, const string &text, Class cl )
 {
-	out << "  \\draw (" << em(xx(x+w/2.F)) << "em," << em(yy(y+h/2.F)) << "em) node {" << escape( text ) << "};\n";
+	out << "  " << clname( cl ) << " (" << em(xx(x+w/2.F)) << "em," << em(yy(y+h/2.F))+0.25F << "em) node {" << escape( text ) << "};\n";
 }
 
 ////////////////////////////////////////
 
 void draw_tikz::text_center( float x, float y, float w, float h, const string &text, Class cl )
 {
-	out << "  \\draw (" << em(xx(x+w/2.F)) << "em," << em(yy(y+h/2.F)) << "em) node {" << escape( text ) << "};\n";
+	out << "  " << clname( cl ) << " (" << em(xx(x+w/2.F)) << "em," << em(yy(y+h/2.F))+0.25F << "em) node {" << escape( text ) << "};\n";
 }
 
 ////////////////////////////////////////
@@ -161,8 +161,8 @@ void draw_tikz::path_arc( float r, Arc a )
 	{
 		case RIGHT_UP: out << " arc (90:0:" << em(r) << "em)"; break;
 		case RIGHT_DOWN: out << " arc (-90:0:" << em(r) << "em)"; break;
-		case LEFT_UP: out << " arc (-90:-180:" << em(r) << "em)"; break;
-		case LEFT_DOWN: out << " arc (90:180:" << em(r) << "em)"; break;
+		case LEFT_UP: out << " arc (90:180:" << em(r) << "em)"; break;
+		case LEFT_DOWN: out << " arc (270:180:" << em(r) << "em)"; break;
 		case UP_RIGHT: out << " arc (180:270:" << em(r) << "em)"; break;
 		case UP_LEFT: out << " arc (0:-90:" << em(r) << "em)"; break;
 		case DOWN_RIGHT: out << " arc (180:90:" << em(r) << "em)"; break;
@@ -213,16 +213,29 @@ string draw_tikz::escape( const string &t )
 			case '}':
 				ret.append( "\\}" );
 				break;
-			case '<':
-				ret.append( "<" );
+			case '_':
+				ret.append( "\\_" );
 				break;
-			case '>':
-				ret.append( ">" );
+			case '&':
+				ret.append( "\\&" );
+				break;
+			case '%':
+				ret.append( "\\%" );
+				break;
+			case '#':
+				ret.append( "\\#" );
+				break;
+			case '$':
+				ret.append( "\\$" );
+				break;
+			case '~':
+				ret.append( "\\textasciitilde" );
+				break;
+			case '^':
+				ret.append( "\textasciicircum" );
 				break;
 			case '\\':
-				break;
-			case '_':
-				ret.push_back( ' ' );
+				ret.append( "\\textbackslash" );
 				break;
 			default:
 				ret.push_back( t[i] );
@@ -239,14 +252,18 @@ string draw_tikz::clname( Class cl )
 {
 	switch ( cl )
 	{
-		case END:
-		case ARROW:
-			  return "\\fill";
-
-		default:
-			return "\\draw";
+		case LINE: return "\\draw[line]"; break;
+		case ARROW: return "\\fill[arrow]";
+		case BOX: return "\\draw[box]"; break;
+		case TITLE: return "\\draw[title]"; break;
+		case PRODUCTION: return "\\draw[production]"; break;
+		case LITERAL: return "\\draw[literal]"; break;
+		case IDENTIFIER: return "\\draw[identifier]"; break;
+		case OTHER: return "\\draw[other]"; break;
+		case END: return "\\fill[end]";
+		case TEST: return "\\draw[test]"; break;
+		default: return "\\draw"; break;
 	}
-
 }	
 
 ////////////////////////////////////////
