@@ -8,8 +8,8 @@
 	optional   = '[' expression ']' .
 	repetition = '{' expression '}' .
 	onemore    = '<' expression [ '~' expression ] '>' .
-	identifier = < *character* > .
+	identifier = < `character` > .
 	title      = literal .
 	comment    = literal .
-	literal    = "'" < *character* > "'" | '"' < *character* > '"' | '*' < *character* > '*'.
+	literal    = "'" < `character` > "'" | '"' < `character` > '"' | '*' < `character` > '*'.
 }
