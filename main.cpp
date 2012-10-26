@@ -1,13 +1,16 @@
 
 #include <iostream>
 #include <string.h>
+#include <fstream>
 #include <string>
 #include <stdexcept>
+#include <unistd.h>
 
 #include "node.h"
 #include "print.h"
 #include "svg.h"
 #include "tikz.h"
+#include "html.h"
 #include "render.h"
 #include <dparse.h>
 
@@ -95,15 +98,53 @@ parse( istream &in )
 	return ret;
 }
 
+bool ends_with( const char *str, const char *suffix )
+{
+	if ( !str || !suffix )
+		return false;
+
+	size_t lenstr = strlen(str);
+	size_t lensuffix = strlen(suffix);
+
+	if (lensuffix >  lenstr)
+		return false;
+
+	return strncmp( str + lenstr - lensuffix, suffix, lensuffix ) == 0;
+}
+
 ////////////////////////////////////////
 
 int main( int argc, char *argv[] )
 {
 	try
 	{
-		node *node = parse( cin );
-		draw_svg dc( cout );
-		render( dc, node );
+		if ( argc < 3 || argc > 3 )
+		{
+			cerr << "Usage:\n\t" << argv[0] << " <grammar> [ <output.svg> | <output.tex> ]" << endl;
+			return -1;
+		}
+
+		ifstream inp( argv[1] );
+		ofstream out( argv[2] );
+
+		draw *dc = NULL;
+
+		if ( ends_with( argv[2], ".html" ) )
+			dc = new draw_html( out );
+		else if ( ends_with( argv[2], ".svg" ) )
+			dc = new draw_svg( out );
+		else if ( ends_with( argv[2], ".tex" ) )
+			dc = new draw_tikz( out );
+
+		if ( dc == NULL )
+		{
+			cerr << "Output file should end in .svg, .html, or .tex" << endl;
+			return -1;
+		}
+
+		node *node = parse( inp );
+		render( *dc, node );
+
 		return 0;
 	}
 	catch ( std::exception &e )
