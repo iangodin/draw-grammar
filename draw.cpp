@@ -263,6 +263,9 @@ void draw::path( Direction d1, const point &p1, const point &p2, Direction d2, f
 					path_arc( r, LEFT_DOWN );
 					path_v_to( p2.y );
 					break;
+
+				case NONE:
+					break;
 			}
 			break;
 
@@ -328,6 +331,8 @@ void draw::path( Direction d1, const point &p1, const point &p2, Direction d2, f
 					}
 					break;
 
+				case NONE:
+					break;
 			}
 			break;
 
