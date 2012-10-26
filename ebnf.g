@@ -140,6 +140,6 @@ literal:
 		}|
 	"\`[^\`]+\`"
 		{
-			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, '*' );
+			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, '`' );
 		};
 

@@ -252,9 +252,10 @@ string draw_svg::clname( Class cl )
 		case BOX: return "\"box\"";
 		case TITLE: return "\"title\"";
 		case PRODUCTION: return "\"prod\"";
+		case NONTERM: return "\"nonterm\"";
 		case LITERAL: return "\"literal\"";
 		case IDENTIFIER: return "\"ident\"";
-		case OTHER: return "\"other\"";
+		case KEYWORD: return "\"keyword\"";
 		case END: return "\"end\"";
 		case TEST: return "\"test\"";
 	}
