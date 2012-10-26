@@ -38,7 +38,6 @@ draw_html::draw_html( ostream &o )
 		"<head>\n"
 		"  <title>Grammar</title>\n"
 		"  <meta http-equiv=\"Content-Type\" content=\"application/xhtml+xml; charset=UTF-8\"></meta>\n"
-		"  <link type=\"text/css\" rel=\"stylesheet\" href=\"style.css\"></link>\n"
 		"  <link type=\"text/css\" rel=\"stylesheet\" href=\"svg.css\"></link>\n"
 		"</head>\n"
 		"<body>\n";
