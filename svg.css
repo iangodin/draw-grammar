@@ -6,7 +6,7 @@ text {
 
 text.title {
 	stroke: none;
-	fill: red;
+	fill: black;
 	font-size: 28px;
 	font-weight: bold;
 }
@@ -16,22 +16,28 @@ text.production {
 	fill: black;
 }
 
+text.nonterm {
+	stroke: none;
+	fill: #A00000;
+}
+
+text.keyword {
+	stroke: none;
+	fill: #3F00DD;
+}
+
 text.literal {
-	stroke: none;
-	fill: red;
-}
-
-text.ident {
-	stroke: none;
-	fill: blue;
-}
-
-text.other {
 	stroke: none;
 	fill: green;
 }
 
+text.ident {
+	stroke: none;
+	fill: black;
+}
+
 rect {
+	stroke-width: 2px;
 	stroke: black;
 	fill: none;
 }
@@ -42,6 +48,7 @@ rect.test {
 }
 
 path.line {
+	stroke-width: 2px;
 	stroke: black;
 	fill: none;
 }
@@ -52,7 +59,8 @@ path.arrow {
 }
 
 circle.end {
-	stroke: none;
-	fill: black;
+	stroke-width: 2px;
+	stroke: black;
+	fill: none;
 }
 
