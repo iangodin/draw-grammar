@@ -5,9 +5,15 @@ BuildDir( "build", "build" )
 BuildDir( "debug", "debug" )
 BuildDir( "release", "release" )
 
-Variable( "cxx", "g++" )
-Variable( "cc", "gcc" )
-Variable( "ld", "g++" )
+if System() == "Darwin" then
+	Variable( "cxx", "clang++" )
+	Variable( "cc", "clang" )
+	Variable( "ld", "clang++" )
+else
+	Variable( "cxx", "g++" )
+	Variable( "cc", "gcc" )
+	Variable( "ld", "g++" )
+end
 Variable( "binld", "ld" )
 Variable( "ar", "ar" )
 Variable( "moc", "moc-qt4" )
@@ -17,10 +23,15 @@ Variable( "dparser", "make_dparser" )
 
 CFlags( "-msse", "-msse2", "-msse3" )
 CFlags( "-flax-vector-conversions" )
-CFlags( "-fPIC", "-Wl,-export-dynamic" )
+CFlags( "-fPIC" )
 CXXFlags( "-msse", "-msse2", "-msse3" )
 CXXFlags( "-flax-vector-conversions" )
 CXXFlags( "--std=c++0x" )
+if System() == "Darwin" then
+	CXXFlags( "--stdlib=libc++" )
+	LDFlags( "--std=c++0x" )
+	LDFlags( "--stdlib=libc++" )
+end
 Variable( "dflags", "-Xcpp" )
 
 -- C/C++ warnings
@@ -30,7 +41,10 @@ Warning( "all", "extra", "no-unused-parameter", "init-self", "comment", "cast-al
 CWarning( "unused" )
 
 -- C++ warnings
-CXXWarning( "unused", "overloaded-virtual", "no-ctor-dtor-privacy", "non-virtual-dtor", "pmf-conversions", "sign-promo", "missing-field-initializers" )
+CXXWarning( "unused", "overloaded-virtual", "no-ctor-dtor-privacy", "non-virtual-dtor", "sign-promo", "missing-field-initializers" )
+if System() ~= "Darwin" then
+	CXXWarning( "pmf-conversions" )
+end
 
 if Building( "debug" ) then
 	CFlags( "-ggdb", "-fvar-tracking-uninit", "-fbounds-check", "-fcheck-data-deps" )
@@ -57,8 +71,4 @@ if Building( "release" ) then
 end
 
 Definition( "__STDC_LIMIT_MACROS", "_FILE_OFFSET_BITS=64" )
-
-LDFlags( "-L" .. build_dir .. "/lib" )
-
-Include( source_dir .. "/lib" )
 

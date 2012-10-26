@@ -32,36 +32,19 @@ using namespace std;
 draw_svg::draw_svg( ostream &o )
 	: draw( o )
 {
-	out <<
-		"<html><head>\n"
-		"  <title>Grammar</title>\n"
-		"  <meta http-equiv=\"Content-Type\" content=\"application/xhtml+xml; charset=UTF-8\"></meta>\n"
-		"  <link type=\"text/css\" rel=\"stylesheet\" href=\"style.css\"></link>\n"
-		"  <link type=\"text/css\" rel=\"stylesheet\" href=\"svg.css\"></link>\n"
-		"</head><body>\n";
-
-//	out << "<svg overflow=\"visible\" "
-//		"xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" "
-//		"xmlns:svg=\"http://www.w3.org/2000/svg\" "
-//		"xmlns:xlink=\"http://www.w3.org/1999/xlink\" "
-//		"width=\"" << top.width << "\" height=\"" << top.height << "\">\n";
 }
 
 ////////////////////////////////////////
 
 draw_svg::~draw_svg( void )
 {
-//	out << "</svg>\n";
-	out << "</body>\n";
 }
 
 ////////////////////////////////////////
 
 void draw_svg::id_begin( float x, float y, float w, float h, const string &name )
 {
-	out << "<div>";
-	out << "<a name=\"" << name << "\">\n";
-	out << "  <svg overflow=\"visible\" "
+	out << "<svg overflow=\"visible\" "
 		"xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" "
 		"xmlns:svg=\"http://www.w3.org/2000/svg\" "
 		"xmlns:xlink=\"http://www.w3.org/1999/xlink\" "
@@ -74,9 +57,7 @@ void draw_svg::id_begin( float x, float y, float w, float h, const string &name 
 void draw_svg::id_end( void )
 {
 	pop_translate();
-	out << "  </svg>\n";
-	out << "</a>";
-	out << "</div>\n";
+	out << "</svg>\n";
 }
 
 ////////////////////////////////////////
@@ -252,9 +233,10 @@ string draw_svg::clname( Class cl )
 		case BOX: return "\"box\"";
 		case TITLE: return "\"title\"";
 		case PRODUCTION: return "\"prod\"";
+		case NONTERM: return "\"nonterm\"";
 		case LITERAL: return "\"literal\"";
 		case IDENTIFIER: return "\"ident\"";
-		case OTHER: return "\"other\"";
+		case KEYWORD: return "\"keyword\"";
 		case END: return "\"end\"";
 		case TEST: return "\"test\"";
 	}

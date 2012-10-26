@@ -257,9 +257,10 @@ string draw_tikz::clname( Class cl )
 		case BOX: return "\\draw[box]"; break;
 		case TITLE: return "\\draw[title]"; break;
 		case PRODUCTION: return "\\draw[production]"; break;
+		case NONTERM: return "\\draw[nonterm]"; break;
 		case LITERAL: return "\\draw[literal]"; break;
 		case IDENTIFIER: return "\\draw[identifier]"; break;
-		case OTHER: return "\\draw[other]"; break;
+		case KEYWORD: return "\\draw[keyword]"; break;
 		case END: return "\\fill[end]";
 		case TEST: return "\\draw[test]"; break;
 		default: return "\\draw"; break;

@@ -51,7 +51,7 @@ compute_size( render_context &ctxt, const node *node, bool &above )
 	if ( node == NULL )
 		return self;
 
-	if ( const ebnf *n = dynamic_cast<const ebnf*>( node ) )
+	if ( const grammar *n = dynamic_cast<const grammar*>( node ) )
 	{
 		ctxt.dir = NONE;
 		ctxt.use_left_rail = ctxt.use_right_rail = false;
@@ -371,7 +371,7 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 	render_box &self = ctxt.data[node];
 	ctxt.push_state();
 
-	if ( const ebnf *n = dynamic_cast<const ebnf*>( node ) )
+	if ( const grammar *n = dynamic_cast<const grammar*>( node ) )
 	{
 		ctxt.dir = NONE;
 		above = false;
@@ -790,12 +790,13 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 		point p1 = self.tl_corner().move( PADH, PADV );
 		point p2 = self.br_corner().move( -PADH, -PADV );
 
-		Class cl = LITERAL;
+		Class cl = KEYWORD;
 		switch ( n->quote() )
 		{
-			case '\0': cl = IDENTIFIER; break;
-			case '\"': cl = LITERAL; break;
-			case '*': cl = OTHER; break;
+			case '\0': cl = NONTERM; break;
+			case '\"': cl = KEYWORD; break;
+			case '\'': cl = IDENTIFIER; break;
+			case '`': cl = LITERAL; break;
 			case 'T': cl = TITLE; break;
 		}
 
@@ -833,7 +834,7 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 				dc.text( p1.x + PADH, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), cl );
 				break;
 
-			case IDENTIFIER:
+			case NONTERM:
 				dc.box( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y, cl );
 				dc.text_center( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), cl );
 				break;
@@ -858,9 +859,9 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 
 void render( draw &dc, const node *e )
 {
-	const ebnf *n = dynamic_cast<const ebnf*>( e );
+	const grammar *n = dynamic_cast<const grammar*>( e );
 	if ( !n )
-		throw runtime_error( "invalid ebnf node" );
+		throw runtime_error( "invalid grammar node" );
 
 	render_context ctxt;
 	bool above = false;
