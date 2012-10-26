@@ -6,7 +6,7 @@
 }
 
 start:
-	ebnf
+	grammar
 	{
 		$$ = $0;
 	}|
@@ -15,10 +15,10 @@ start:
 		$$ = $0;
 	};
 
-ebnf:
+grammar:
 	title '{' productions '}' comment
 		{
-			$$ = new ebnf( $0, $2, $4 );
+			$$ = new grammar( $0, $2, $4 );
 		};
 
 productions:
