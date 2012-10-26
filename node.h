@@ -213,10 +213,10 @@ private:
 
 ////////////////////////////////////////
 
-class ebnf : public node
+class grammar : public node
 {
 public:
-	ebnf( node *title, node *prods, node *cmt )
+	grammar( node *title, node *prods, node *cmt )
 		: _title( title ), _prods( prods ), _comment( cmt )
 	{
 	}

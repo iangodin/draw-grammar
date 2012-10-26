@@ -30,7 +30,7 @@ ostream &operator<<( ostream &out, const node &node )
 	if ( &node == NULL )
 		return out;
 
-	if ( const ebnf *n = dynamic_cast<const ebnf*>( &node ) )
+	if ( const grammar *n = dynamic_cast<const grammar*>( &node ) )
 	{
 		out << *n->title() << "\n{\n" << *n->prods() << "}\n" << *n->comment() << '\n';
 	}

@@ -209,5 +209,5 @@ private:
 	vector<state> _stack;
 };
 
-void render( draw &dc, const node *ebnf );
+void render( draw &dc, const node *gram );
 

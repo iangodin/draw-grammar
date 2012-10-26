@@ -9,8 +9,8 @@ srcs = {
 	"tikz.cpp",
 	"html.cpp",
 	"render.cpp",
-	DParse( "ebnf.g" ),
+	DParse( "grammar.g" ),
 }
 
-Executable( "draw_ebnf", Compile( srcs ), LinkSys( "dparse" ) );
+Executable( "draw_grammar", Compile( srcs ), LinkSys( "dparse" ) );
 

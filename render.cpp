@@ -54,7 +54,7 @@ compute_size( render_context &ctxt, const node *node, bool &above )
 	if ( node == NULL )
 		return self;
 
-	if ( const ebnf *n = dynamic_cast<const ebnf*>( node ) )
+	if ( const grammar *n = dynamic_cast<const grammar*>( node ) )
 	{
 		ctxt.dir = NONE;
 		ctxt.use_left_rail = ctxt.use_right_rail = false;
@@ -374,7 +374,7 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 	render_box &self = ctxt.data[node];
 	ctxt.push_state();
 
-	if ( const ebnf *n = dynamic_cast<const ebnf*>( node ) )
+	if ( const grammar *n = dynamic_cast<const grammar*>( node ) )
 	{
 		ctxt.dir = NONE;
 		above = false;
@@ -862,9 +862,9 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 
 void render( draw &dc, const node *e )
 {
-	const ebnf *n = dynamic_cast<const ebnf*>( e );
+	const grammar *n = dynamic_cast<const grammar*>( e );
 	if ( !n )
-		throw runtime_error( "invalid ebnf node" );
+		throw runtime_error( "invalid grammar node" );
 
 	render_context ctxt;
 	bool above = false;
