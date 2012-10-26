@@ -33,12 +33,23 @@ using namespace std;
 draw_html::draw_html( ostream &o )
 	: draw_svg( o )
 {
+}
+
+////////////////////////////////////////
+
+draw_html::~draw_html( void )
+{
+}
+
+////////////////////////////////////////
+
+void draw_html::begin( const string &title )
+{
 	out <<
 		"<html>\n"
 		"<head>\n"
-		"  <title>Grammar</title>\n"
+		"  <title>" << escape( title ) << "</title>\n"
 		"  <meta http-equiv=\"Content-Type\" content=\"application/xhtml+xml; charset=UTF-8\"></meta>\n"
-		"  <link type=\"text/css\" rel=\"stylesheet\" href=\"style.css\"></link>\n"
 		"  <link type=\"text/css\" rel=\"stylesheet\" href=\"svg.css\"></link>\n"
 		"</head>\n"
 		"<body>\n";
@@ -46,7 +57,7 @@ draw_html::draw_html( ostream &o )
 
 ////////////////////////////////////////
 
-draw_html::~draw_html( void )
+void draw_html::end( void )
 {
 	out << "</body>\n";
 	out << "</html>\n";

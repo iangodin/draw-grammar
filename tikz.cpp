@@ -33,9 +33,21 @@ using namespace std;
 draw_tikz::draw_tikz( ostream &o )
 	: draw( o )
 {
+}
+
+////////////////////////////////////////
+
+draw_tikz::~draw_tikz( void )
+{
+}
+
+////////////////////////////////////////
+
+void draw_tikz::begin( const string &title )
+{
 	out <<
 		"\\begin{figure}[H]\n"
-		"\\caption{Figure}\n"
+		"\\caption{" << escape( title ) << "}\n"
 		"\\label{fig:picture}\n"
 		"\\center\n"
 		"\\begin{tikzpicture}[yscale=-1]\n";
@@ -43,7 +55,7 @@ draw_tikz::draw_tikz( ostream &o )
 
 ////////////////////////////////////////
 
-draw_tikz::~draw_tikz( void )
+void draw_tikz::end( void )
 {
 	out <<
 		"\\end{tikzpicture}\n"

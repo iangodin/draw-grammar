@@ -36,6 +36,9 @@ public:
 	draw_html( ostream &o );
 	virtual ~draw_html( void );
 
+	virtual void begin( const string &title );
+	virtual void end( void );
+
 	virtual void id_begin( float x, float y, float w, float h, const string &name );
 	virtual void id_end();
 };

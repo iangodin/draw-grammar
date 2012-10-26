@@ -42,6 +42,18 @@ draw_svg::~draw_svg( void )
 
 ////////////////////////////////////////
 
+void draw_svg::begin( const string &title )
+{
+}
+
+////////////////////////////////////////
+
+void draw_svg::end( void )
+{
+}
+
+////////////////////////////////////////
+
 void draw_svg::id_begin( float x, float y, float w, float h, const string &name )
 {
 	out << "<svg overflow=\"visible\" "
