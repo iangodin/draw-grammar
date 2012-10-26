@@ -870,10 +870,18 @@ void render( draw &dc, const node *e )
 	bool above = false;
 	compute_size( ctxt, n, above );
 
+	const literal *l = dynamic_cast<const literal*>( n->title() );
+	if ( l )
+		dc.begin( l->value() );
+	else
+		dc.begin( "Grammar" );
+
 	render_box &top = ctxt.data[n];
 	dc.id_begin( top.x(), top.y(), top.width(), top.height(), "top" );
 	render( dc, n, ctxt, above );
 	dc.id_end();
+
+	dc.end();
 }
 
 ////////////////////////////////////////

@@ -122,6 +122,9 @@ public:
 	draw( ostream &out );
 	virtual ~draw( void );
 
+	virtual void begin( const string &title ) = 0;
+	virtual void end( void ) = 0;
+
 	virtual void push_translate( const point &p );
 	virtual void pop_translate( void );
 
