@@ -686,10 +686,8 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 	{
 		ctxt.push_state();
 		dc.push_translate( self.tl_corner() );
-		ctxt.left_rail -= self.tl_corner().x;
-		ctxt.right_rail -= self.tl_corner().x;
-		ctxt.rail_top -= self.tl_corner().y;
-		ctxt.rail_bottom -= self.tl_corner().y;
+		ctxt.use_left_rail = false;
+		ctxt.use_right_rail = false;
 		{
 			render( dc, n->expr(), ctxt, above );
 
