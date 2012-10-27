@@ -35,19 +35,23 @@ end
 Variable( "dflags", "-Xcpp" )
 
 -- C/C++ warnings
-Warning( "all", "extra", "no-unused-parameter", "init-self", "comment", "cast-align", "switch", "format", "multichar", "missing-braces", "parentheses", "pointer-arith", "sign-compare", "return-type", "write-strings", "cast-align" )
+Warning( "no-unused-parameter", "init-self", "comment", "switch", "format", "multichar", "missing-braces", "parentheses", "pointer-arith", "sign-compare", "return-type", "write-strings" )
 
 -- C warnings
 CWarning( "unused" )
 
 -- C++ warnings
-CXXWarning( "unused", "overloaded-virtual", "no-ctor-dtor-privacy", "non-virtual-dtor", "sign-promo", "missing-field-initializers" )
+CXXWarning( "unused", "overloaded-virtual", "no-ctor-dtor-privacy", "non-virtual-dtor", "sign-promo" ) --, "missing-field-initializers" )
 if System() ~= "Darwin" then
 	CXXWarning( "pmf-conversions" )
 end
 
 if Building( "debug" ) then
-	CFlags( "-ggdb", "-fvar-tracking-uninit", "-fbounds-check", "-fcheck-data-deps" )
+	CFlags( "-ggdb" )
+	if System() ~= "Darwin" then
+		CFlags( "-fvar-tracking-uninit", "-fbounds-check", "-fcheck-data-deps" )
+	end
+	 
 --	Library = SharedLibrary
 --	LinkLibs = LinkSharedLibs
 	Library = StaticLibrary
