@@ -56,7 +56,10 @@ void draw_svg::end( void )
 
 void draw_svg::id_begin( float x, float y, float w, float h, const string &name )
 {
-	out << "<svg overflow=\"visible\" "
+	out <<
+		"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+		"<?xml-stylesheet href=\"svg.css\" type=\"text/css\"?>\n"
+		"<svg overflow=\"visible\" "
 		"xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" "
 		"xmlns:svg=\"http://www.w3.org/2000/svg\" "
 		"xmlns:xlink=\"http://www.w3.org/1999/xlink\" "
