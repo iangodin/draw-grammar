@@ -49,6 +49,8 @@ public:
 	{
 		for ( size_t i = 0; i < _value.size(); ++i )
 		{
+			if ( _value[i] == '\\' && i+1 < _value.size() )
+				_value.erase( i, 1 );
 		}
 	}
 
