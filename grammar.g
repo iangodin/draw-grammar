@@ -19,8 +19,7 @@ start:
 grammar:
 	title '{' productions '}'
 		{
-			cout << (void*)$0 << ' ' << (void*)$2 << ' ' << (void*)$4 << endl;
-			$$ = new grammar( $0, $2, $4 );
+			$$ = new grammar( $0, $2 );
 		};
 
 productions:
@@ -118,7 +117,6 @@ title:
 		}|
 	"\"([^\"\\]|\\[^])*\""
 		{
-			cout << "title = " << string( $n0.start_loc.s+1, $n0.end-1 ) << endl;
 			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, 'T' );
 		};
 

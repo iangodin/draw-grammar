@@ -32,7 +32,7 @@ ostream &operator<<( ostream &out, const node &node )
 
 	if ( const grammar *n = dynamic_cast<const grammar*>( &node ) )
 	{
-		out << *n->title() << "\n{\n" << *n->prods() << "}\n" << *n->comment() << '\n';
+		out << *n->title() << "\n{\n" << *n->prods() << "}\n";
 	}
 	else if ( const productions *n = dynamic_cast<const productions*>( &node ) )
 	{

@@ -47,6 +47,9 @@ public:
 	literal( const char *start, const char *end, char quote )
 		: _value( start, end ), _quote( quote )
 	{
+		for ( size_t i = 0; i < _value.size(); ++i )
+		{
+		}
 	}
 
 	literal( char quote )
@@ -216,19 +219,17 @@ private:
 class grammar : public node
 {
 public:
-	grammar( node *title, node *prods, node *cmt )
-		: _title( title ), _prods( prods ), _comment( cmt )
+	grammar( node *title, node *prods )
+		: _title( title ), _prods( prods )
 	{
 	}
 
 	inline const node *title( void ) const { return _title; }
 	inline const node *prods( void ) const { return _prods; }
-	inline const node *comment( void ) const { return _comment; }
 
 private:
 	node *_title;
 	node *_prods;
-	node *_comment;
 };
 
 ////////////////////////////////////////

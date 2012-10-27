@@ -58,14 +58,11 @@ compute_size( render_context &ctxt, const node *node, bool &above )
 		above = false;
 		render_box &title = compute_size( ctxt, n->title(), above );
 		render_box &prods = compute_size( ctxt, n->prods(), above );
-		render_box &comment = compute_size( ctxt, n->comment(), above );
 
 		prods.move_to( title.bl_corner() );
-		comment.move_to( prods.bl_corner() );
 
 		self.include( title );
 		self.include( prods );
-		self.include( comment );
 	}
 	else if ( const productions *n = dynamic_cast<const productions*>( node ) )
 	{
@@ -380,8 +377,6 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 		if( n->title() )
 			render( dc, n->title(), ctxt, above );
 		render( dc, n->prods(), ctxt, above );
-		if ( n->comment() )
-			render( dc, n->comment(), ctxt, above );
 		dc.pop_translate();
 		ctxt.pop_state();
 	}
