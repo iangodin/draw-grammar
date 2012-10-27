@@ -1,6 +1,7 @@
 
 {
 
+#include <iostream>
 #include "node.h"
 
 }
@@ -16,8 +17,9 @@ start:
 	};
 
 grammar:
-	title '{' productions '}' comment
+	title '{' productions '}'
 		{
+			cout << (void*)$0 << ' ' << (void*)$2 << ' ' << (void*)$4 << endl;
 			$$ = new grammar( $0, $2, $4 );
 		};
 
@@ -114,31 +116,22 @@ title:
 		{
 			$$ = NULL;
 		}|
-	"\"[^\"]+\""
+	"\"([^\"\\]|\\[^])*\""
 		{
+			cout << "title = " << string( $n0.start_loc.s+1, $n0.end-1 ) << endl;
 			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, 'T' );
 		};
 
-comment:
-	// nothing
-		{
-			$$ = NULL;
-		}|
-	literal
-		{
-			$$ = $0;
-		};
-
 literal:
-	"\'[^']+\'"
+	"\'([^\'\\]|\\[^])*\'"
 		{
 			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, '\'' );
 		}|
-	"\"[^\"]+\""
+	"\"([^\"\\]|\\[^])*\""
 		{
 			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, '\"' );
 		}|
-	"\`[^\`]+\`"
+	"\`([^\`\\]|\\[^])*\`"
 		{
 			$$ = new literal( $n0.start_loc.s+1, $n0.end-1, '`' );
 		};
