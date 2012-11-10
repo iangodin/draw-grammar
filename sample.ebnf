@@ -1,0 +1,6 @@
+"Sample EBNF"
+{
+	optional = one | two | three .
+	one_or_more = < x ~ "," > .
+	zero_or_more = { x } .
+}

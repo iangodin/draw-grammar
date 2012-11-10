@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="svg.css" type="text/css"?>
+<svg overflow="visible" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="340.72px" height="427px">
+  <text x="20" y="32" class="title" fill="black" stroke="none" font-family="Courier,monospace" font-weight="bold" font-size="20px">Sample EBNF</text>
+  <text x="20" y="80" class="prod" fill="black" stroke="none" font-family="Courier,monospace" font-weight="bold" font-size="20px">optional</text>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 171.6 90 h 15"/>
+  <path class="arrow" stroke="none" fill="black" stroke-width="2px" d="M 191.6 90 l -10 -5 0 10 10 -5 z"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 262.4 90 H 252.4"/>
+  <rect x="192.1" y="74.5" width="60.8" height="32" class="nonterm" stroke="black" fill="none" stroke-width="2px"></rect>
+  <text x="222" y="98" text-anchor="middle" class="nonterm" fill="red" stroke="none" font-family="Courier,monospace" font-weight="bold" font-size="20px">one</text>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 171.6 138 h 15"/>
+  <path class="arrow" stroke="none" fill="black" stroke-width="2px" d="M 191.6 138 l -10 -5 0 10 10 -5 z"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 262.4 138 H 252.4"/>
+  <rect x="192.1" y="122.5" width="60.8" height="32" class="nonterm" stroke="black" fill="none" stroke-width="2px"></rect>
+  <text x="222" y="146" text-anchor="middle" class="nonterm" fill="red" stroke="none" font-family="Courier,monospace" font-weight="bold" font-size="20px">two</text>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 171.6 186 h 15"/>
+  <path class="arrow" stroke="none" fill="black" stroke-width="2px" d="M 191.6 186 l -10 -5 0 10 10 -5 z"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 286.72 186 H 276.72"/>
+  <rect x="192.1" y="170.5" width="85.12" height="32" class="nonterm" stroke="black" fill="none" stroke-width="2px"></rect>
+  <text x="234.16" y="194" text-anchor="middle" class="nonterm" fill="red" stroke="none" font-family="Courier,monospace" font-weight="bold" font-size="20px">three</text>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 151.6 90 a 10 10 0 0 1 10 10 V 176 a 10 10 0 0 0 10 10 H 171.6"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 286.72 186 H 286.72 a 10 10 0 0 0 10 -10 V 100 a 10 10 0 0 1 10 -10"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 151.6 90 H 171.6"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 262.4 90 H 306.72"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 161.6 128 V 128 a 10 10 0 0 0 10 10 H 171.6"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 262.4 138 H 286.72 a 10 10 0 0 0 10 -10 V 128"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 10 90 H 151.6"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 306.72 90 H 326.72"/>
+  <circle cx="329.22" cy="90.5" r="4" class="end" stroke="black" fill="none" stroke-width="2px" />
+  <text x="20" y="242" class="prod" fill="black" stroke="none" font-family="Courier,monospace" font-weight="bold" font-size="20px">one_or_more</text>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 208.08 252 h 15"/>
+  <path class="arrow" stroke="none" fill="black" stroke-width="2px" d="M 228.08 252 l -10 -5 0 10 10 -5 z"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 274.56 252 H 264.56"/>
+  <rect x="228.58" y="236.5" width="36.48" height="32" class="nonterm" stroke="black" fill="none" stroke-width="2px"></rect>
+  <text x="246.32" y="260" text-anchor="middle" class="nonterm" fill="red" stroke="none" font-family="Courier,monospace" font-weight="bold" font-size="20px">x</text>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 274.56 300 h -15"/>
+  <path class="arrow" stroke="none" fill="black" stroke-width="2px" d="M 254.56 300 l 10 5 0 -10 z"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 208.08 300 H 218.08"/>
+  <rect rx="16" ry="16" x="218.58" y="284.5" width="36.48" height="32" class="keyword" stroke="black" fill="none" stroke-width="2px"></rect>
+  <text x="236.32" y="308" text-anchor="middle" class="keyword" fill="blue" stroke="none" font-family="Courier,monospace" font-weight="bold" font-size="20px">,</text>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 188.08 252 H 208.08"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 274.56 252 H 294.56"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 274.56 252 H 274.56 a 10 10 0 0 1 10 10 V 290 a 10 10 0 0 1 -10 10 H 274.56"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 208.08 300 H 208.08 a 10 10 0 0 1 -10 -10 V 262 a 10 10 0 0 1 10 -10 H 208.08"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 10 252 H 188.08"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 294.56 252 H 314.56"/>
+  <circle cx="317.06" cy="252.5" r="4" class="end" stroke="black" fill="none" stroke-width="2px" />
+  <text x="20" y="356" class="prod" fill="black" stroke="none" font-family="Courier,monospace" font-weight="bold" font-size="20px">zero_or_more</text>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 286.72 403 h -15"/>
+  <path class="arrow" stroke="none" fill="black" stroke-width="2px" d="M 266.72 403 l 10 5 0 -10 z"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 220.24 403 H 230.24"/>
+  <rect x="230.74" y="387.5" width="36.48" height="32" class="nonterm" stroke="black" fill="none" stroke-width="2px"></rect>
+  <text x="248.48" y="411" text-anchor="middle" class="nonterm" fill="red" stroke="none" font-family="Courier,monospace" font-weight="bold" font-size="20px">x</text>
+  <path class="arrow" stroke="none" fill="black" stroke-width="2px" d="M 258.48 366 l -10 -5 0 10 10 -5 z"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 200.24 366 H 306.72"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 286.72 366 H 286.72 a 10 10 0 0 1 10 10 V 393 a 10 10 0 0 1 -10 10 H 286.72"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 220.24 403 H 220.24 a 10 10 0 0 1 -10 -10 V 376 a 10 10 0 0 1 10 -10 H 220.24"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 10 366 H 200.24"/>
+  <path class="line" stoke-width="2px" stroke="black" fill="none" stroke-width="2px" d="M 306.72 366 H 326.72"/>
+  <circle cx="329.22" cy="366.5" r="4" class="end" stroke="black" fill="none" stroke-width="2px" />
+</svg>
