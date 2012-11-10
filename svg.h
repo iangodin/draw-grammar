@@ -67,6 +67,6 @@ public:
 
 protected:
 	string escape( const string &t );
-	string clname( Class cl );
+	string clname( Class cl, bool text = false );
 };
 

@@ -114,7 +114,7 @@ void draw_svg::round( float x, float y, float w, float h, Class cl )
 
 void draw_svg::text( float x, float y, float w, float h, const string &text, Class cl )
 {
-	out << "  <text x=\"" << xx(x) << "\" y=\"" << yy(y + h) << "\" class=" << clname( cl ) << ">";
+	out << "  <text x=\"" << xx(x) << "\" y=\"" << yy(y + h) << "\" class=" << clname( cl, true ) << ">";
 	out << escape( text ) << "</text>\n";
 }
 
@@ -122,7 +122,7 @@ void draw_svg::text( float x, float y, float w, float h, const string &text, Cla
 
 void draw_svg::text_center( float x, float y, float w, float h, const string &text, Class cl )
 {
-	out << "  <text x=\"" << xx(x + w/2.F) << "\" y=\"" << yy(y + h) << "\" text-anchor=\"middle\" class=" << clname( cl ) << ">";
+	out << "  <text x=\"" << xx(x + w/2.F) << "\" y=\"" << yy(y + h) << "\" text-anchor=\"middle\" class=" << clname( cl, true ) << ">";
 	out << escape( text ) << "</text>\n";
 }
 
@@ -239,21 +239,45 @@ string draw_svg::escape( const string &t )
 
 ////////////////////////////////////////
 
-string draw_svg::clname( Class cl )
+string draw_svg::clname( Class cl, bool text )
 {
-	switch ( cl )
+	if ( text )
 	{
-		case LINE: return "\"line\"";
-		case ARROW: return "\"arrow\"";
-		case BOX: return "\"box\"";
-		case TITLE: return "\"title\"";
-		case PRODUCTION: return "\"prod\"";
-		case NONTERM: return "\"nonterm\"";
-		case LITERAL: return "\"literal\"";
-		case IDENTIFIER: return "\"ident\"";
-		case KEYWORD: return "\"keyword\"";
-		case END: return "\"end\"";
-		case TEST: return "\"test\"";
+		std::string ret;
+		switch ( cl )
+		{
+			case LINE: ret = "\"line\" fill=\"black\""; break;
+			case ARROW: ret = "\"arrow\" fill=\"black\""; break;
+			case BOX: ret = "\"box\" fill=\"black\""; break;
+			case TITLE: ret = "\"title\" fill=\"black\""; break;
+			case PRODUCTION: ret = "\"prod\" fill=\"black\""; break;
+			case NONTERM: ret = "\"nonterm\" fill=\"red\""; break;
+			case LITERAL: ret = "\"literal\" fill=\"green\""; break;
+			case IDENTIFIER: ret = "\"ident\" fill=\"black\""; break;
+			case KEYWORD: ret = "\"keyword\" fill=\"blue\""; break;
+			case END: ret = "\"end\" fill=\"black\""; break;
+			case TEST: ret = "\"test\" fill=\"black\""; break;
+		}
+		if ( ret.empty() )
+			return "\"unknown\"";
+		return ret + " stroke=\"none\" font-family=\"Courier,monospace\" font-weight=\"bold\" font-size=\"20px\"";
+	}
+	else
+	{
+		switch ( cl )
+		{
+			case LINE: return "\"line\" stoke-width=\"2px\" stroke=\"black\" fill=\"none\" stroke-width=\"2px\"";
+			case ARROW: return "\"arrow\" stroke=\"none\" fill=\"black\" stroke-width=\"2px\"";
+			case BOX: return "\"box\" stroke=\"black\" fill=\"none\" stroke-width=\"2px\"";
+			case TITLE: return "\"title\" stroke=\"black\" fill=\"none\" stroke-width=\"2px\"";
+			case PRODUCTION: return "\"prod\" stroke=\"black\" fill=\"none\" stroke-width=\"2px\"";
+			case NONTERM: return "\"nonterm\" stroke=\"black\" fill=\"none\" stroke-width=\"2px\"";
+			case LITERAL: return "\"literal\" stroke=\"black\" fill=\"none\" stroke-width=\"2px\"";
+			case IDENTIFIER: return "\"ident\" stroke=\"black\" fill=\"none\" stroke-width=\"2px\"";
+			case KEYWORD: return "\"keyword\" stroke=\"black\" fill=\"none\" stroke-width=\"2px\"";
+			case END: return "\"end\" stroke=\"black\" fill=\"none\" stroke-width=\"2px\"";
+			case TEST: return "\"test\" stroke=\"black\" fill=\"none\"";
+		}
 	}
 
 	return "\"unknown\"";
