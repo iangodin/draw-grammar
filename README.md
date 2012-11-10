@@ -40,6 +40,7 @@ Sample
 ------
 
 Here is what a sample grammar file looks like:
+
 	"Sample EBNF"
 	{
 		optional = one | two | three .
