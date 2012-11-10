@@ -120,7 +120,7 @@ int main( int argc, char *argv[] )
 	{
 		if ( argc < 3 || argc > 3 )
 		{
-			cerr << "Usage:\n\t" << argv[0] << " <grammar> [ <output.svg> | <output.tex> ]" << endl;
+			cerr << "Usage:\n\t" << argv[0] << " <grammar_file> [ <output.svg> | <output.html> | <output.tex> ]" << endl;
 			return -1;
 		}
 
