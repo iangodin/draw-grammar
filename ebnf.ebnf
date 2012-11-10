@@ -1,15 +1,15 @@
 "EBNF defined in itself"
 {
-	syntax     = [ title ] "{" { production } "}" [ comment ].
-	production = identifier "=" expression ( "." | ";" ) .
+	syntax     = [ title ] "{" { production } "}" .
+	title      = literal .
+	production = identifier "=" expression "." | identifier ":" expression ";" .
 	expression = term { "|" term } .
 	term       = factor { factor } .
-	factor     = identifier | literal | optional | '(' expression ')' | repetition | onemore .
-	optional   = '[' expression ']' .
-	repetition = '{' expression '}' .
-	onemore    = '<' expression [ '~' expression ] '>' .
+	factor     = identifier | literal | optional | "(" expression ")" | repetition | onemore .
+	optional   = "[" expression "]" | factor "?" .
+	repetition = "{" expression "}" | factor "*" .
+	onemore    = "<" expression [ "~" expression ] ">" | factor "+" .
 	identifier = < `character` > .
-	title      = literal .
-	comment    = literal .
-	literal    = "'" < `character` > "'" | '"' < `character` > '"' | '*' < `character` > '*'.
+	literal    = "'" < `character` > "'" | "\"" < `character` > "\"" | "`" < `character` > "`" .
+	comment    = "//" { `character` } `newline` | "/*" { `character` } "*/" .
 }
