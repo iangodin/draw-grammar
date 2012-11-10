@@ -16,12 +16,11 @@ On Linux, you will need lua and lua-posix (packages are usually available for Li
 Ninja is used as the build tool.
 DParser is used as the parsing tool for the grammar file.
 
-Here are the location for the required tools
-
-http://lua.org
-http://files.luaforge.net/releases/luaposix/luaposix
-http://martine.github.com/ninja/
-http://dparser.sourceforge.net/
+Here are the location for the required tools:
+ * http://lua.org
+ * http://files.luaforge.net/releases/luaposix/luaposix
+ * http://martine.github.com/ninja/
+ * http://dparser.sourceforge.net/
 
 Building
 --------
