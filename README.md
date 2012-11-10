@@ -27,5 +27,6 @@ Building
 
 There is a Makefile provided, but ninja is really used to compile.
 Once the requirements are installed, simply run "make" to compile.
-There's a single executable in the directory /build/bin/draw_grammar
+There's a single executable in the directory build/bin/draw_grammar
 
+You can also use "make debug" which will create an executable in debug/bin/draw_grammar.
