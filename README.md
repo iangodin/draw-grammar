@@ -36,3 +36,17 @@ You do not need to invoke this script, the Makefile will call configure for you.
 It will search for the required libraries and programs, and create a build, release, and debug directory.
 There is currently no difference between build and release.
 
+Sample
+------
+
+Here is what a sample grammar file looks like:
+	"Sample EBNF"
+	{
+		optional = one | two | three .
+		one_or_more = < x ~ "," > .
+		zero_or_more = { x } .
+	}
+
+And the rendered SVG file:
+
+![Sample Grammar](https://raw.github.com/iangodin/draw-grammar/master/sample.png)
