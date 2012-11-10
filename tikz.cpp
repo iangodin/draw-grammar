@@ -31,7 +31,7 @@ using namespace std;
 ////////////////////////////////////////
 
 draw_tikz::draw_tikz( ostream &o )
-	: draw( o )
+	: draw( o ), last_x( 0 ), last_y( 0 )
 {
 }
 
@@ -127,6 +127,7 @@ void draw_tikz::text_center( float x, float y, float w, float h, const string &t
 
 void draw_tikz::path_begin( float x, float y, Class cl )
 {
+	last_x = x; last_y = y;
 	out << "  " << clname( cl ) << "(" << em(xx(x)) << "em," << em(yy(y)) << "em)";
 }
 
@@ -134,6 +135,7 @@ void draw_tikz::path_begin( float x, float y, Class cl )
 
 void draw_tikz::path_h_by( float x )
 {
+	last_x += x;
 	out << " -- ++(" << em(x) << "em,0em)";
 }
 
@@ -141,6 +143,7 @@ void draw_tikz::path_h_by( float x )
 
 void draw_tikz::path_v_by( float y )
 {
+	last_y += y;
 	out << " -- ++(0em," << em(y) << "em)";
 }
 
@@ -148,20 +151,23 @@ void draw_tikz::path_v_by( float y )
 
 void draw_tikz::path_h_to( float x )
 {
-	out << " svg[scale=1em] \"H " << em(xx(x)) << "\"";
+	last_x = x;
+	out << " -- (" << em(xx(x)) << "em," << em(yy(last_y)) << "em)";
 }
 
 ////////////////////////////////////////
 
 void draw_tikz::path_v_to( float y )
 {
-	out << " svg[scale=1em] \"V " << em(yy(y)) << "\"";
+	last_y = y;
+	out << " -- (" << em(xx(last_x)) << "em," << em(yy(y)) << "em)";
 }
 
 ////////////////////////////////////////
 
 void draw_tikz::path_to( float x, float y )
 {
+	last_x = x; last_y = y;
 	out << " -- (" << em(xx(x)) << "em," << em(yy(y)) << "em)";
 }
 
@@ -171,14 +177,14 @@ void draw_tikz::path_arc( float r, Arc a )
 {
 	switch ( a )
 	{
-		case RIGHT_UP: out << " arc (90:0:" << em(r) << "em)"; break;
-		case RIGHT_DOWN: out << " arc (-90:0:" << em(r) << "em)"; break;
-		case LEFT_UP: out << " arc (90:180:" << em(r) << "em)"; break;
-		case LEFT_DOWN: out << " arc (270:180:" << em(r) << "em)"; break;
-		case UP_RIGHT: out << " arc (180:270:" << em(r) << "em)"; break;
-		case UP_LEFT: out << " arc (0:-90:" << em(r) << "em)"; break;
-		case DOWN_RIGHT: out << " arc (180:90:" << em(r) << "em)"; break;
-		case DOWN_LEFT: out << " arc (0:90:" << em(r) << "em)"; break;
+		case RIGHT_UP: out << " arc (90:0:" << em(r) << "em)"; last_x += r, last_y -= r;break;
+		case RIGHT_DOWN: out << " arc (-90:0:" << em(r) << "em)"; last_x += r, last_y += r;break;
+		case LEFT_UP: out << " arc (90:180:" << em(r) << "em)"; last_x -= r, last_y -= r;break;
+		case LEFT_DOWN: out << " arc (270:180:" << em(r) << "em)"; last_x -= r, last_y += r;break;
+		case UP_RIGHT: out << " arc (180:270:" << em(r) << "em)"; last_x += r, last_y -= r;break;
+		case UP_LEFT: out << " arc (0:-90:" << em(r) << "em)"; last_x -= r, last_y -= r;break;
+		case DOWN_RIGHT: out << " arc (180:90:" << em(r) << "em)"; last_x -= r, last_y += r;break;
+		case DOWN_LEFT: out << " arc (0:90:" << em(r) << "em)"; last_x += r, last_y += r;break;
 	}
 }
 

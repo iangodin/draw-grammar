@@ -69,5 +69,9 @@ protected:
 	string escape( const string &t );
 	string clname( Class cl );
 	float em( float x );
+
+	float last_x;
+	float last_y;
 };
+
 
