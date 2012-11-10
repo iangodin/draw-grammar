@@ -1,0 +1,66 @@
+
+text {
+	font-family: "Courier New", Courier, monospace;
+	font-weight: bold;
+}
+
+text.title {
+	stroke: none;
+	fill: black;
+	font-size: 28px;
+	font-weight: bold;
+}
+
+text.production {
+	stroke: none;
+	fill: black;
+}
+
+text.nonterm {
+	stroke: none;
+	fill: #A00000;
+}
+
+text.keyword {
+	stroke: none;
+	fill: #3F00DD;
+}
+
+text.literal {
+	stroke: none;
+	fill: green;
+}
+
+text.ident {
+	stroke: none;
+	fill: black;
+}
+
+rect {
+	stroke-width: 2px;
+	stroke: black;
+	fill: none;
+}
+
+rect.test {
+	stroke: red;
+	fill: rgba(255,0,0,0.25);
+}
+
+path.line {
+	stroke-width: 2px;
+	stroke: black;
+	fill: none;
+}
+
+path.arrow {
+	stroke: none;
+	fill: black;
+}
+
+circle.end {
+	stroke-width: 2px;
+	stroke: black;
+	fill: none;
+}
+

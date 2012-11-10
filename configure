@@ -1,0 +1,1118 @@
+#! /usr/bin/env lua
+
+local posix = require( "posix" )
+local exports = {}
+local libs_needed = {}
+local all_targets = {}
+
+function string:split( sep )
+	local sep, fields = sep or "/", {}
+	local pattern = string.format( "([^%s]+)", sep )
+	self:gsub( pattern, function( c ) fields[#fields+1] = c end )
+	return fields
+end
+
+
+local function mkdir( name )
+	local sep = "/";
+	local build = ""
+	for k, d in pairs( name:split( "/" ) ) do
+		if d ~= "" then
+			build = build .. "/" .. d
+			posix.mkdir( build )
+		end
+	end
+end
+
+local function array_concat( ... ) 
+    local t = {}
+    for n = 1, select( "#", ... ) do
+        local arg = select( n, ... )
+        if type( arg ) == "table" then
+            for _, v in ipairs( arg ) do
+                table.insert( t, v )
+            end
+        else
+            table.insert( t, arg )
+        end
+    end
+    return t
+end
+
+local function remove_dup_libs( list )
+	local tmp = {}
+	local newlist = {}
+	for i = #list, 1, -1 do
+		local v = list[i]
+		if tmp[v] == nil then
+			tmp[v] = true
+			if v ~= nil then
+				table.insert( newlist, 1, v )
+			end
+		end
+	end
+	return newlist
+end
+
+local function command( cmd )
+    local f = io.popen( cmd..'; echo "-retcode:$?"' ,'r' )
+    local l = f:read( '*a' )
+    f:close()
+    local i1, i2, ret = l:find( '%-retcode:(%d+)\n$' )
+    if i1 > 1 then i1 = i1 - 1 end
+    l = l:sub( 1, i1-1 )
+    return l, tonumber( ret )
+end
+
+local function file_diff( file, text )
+	local file, err = io.open( file, "r" )
+	if file == nil then
+		return true
+	end
+
+	local i = 0
+	for line in file:lines() do
+		i = i + 1
+		if line ~= text[i] then
+			return true
+		end
+	end
+
+	return i ~= #text
+end
+
+local ninja
+function Ninja( ... )
+	local args = { ... }
+	for i = 1, #args do
+		if i > 1 then ninja:write( " " ) end
+		ninja:write( args[i] )
+	end
+	ninja:write( "\n" )
+end
+
+function Build( out, rule, ... )
+	local ins = array_concat( ... )
+	ninja:write( "build" )
+	if type( out ) == "string" then
+		ninja:write( " " )
+		ninja:write( out )
+	elseif type( out ) == "table" then
+		for i = 1, #out do
+			ninja:write( " " )
+			ninja:write( out[i] )
+		end
+	end
+	ninja:write( ": " )
+	ninja:write( rule )
+	for i = 1, #ins do
+		ninja:write( " " )
+		ninja:write( ins[i] )
+	end
+	ninja:write( "\n" )
+end
+
+----------------------------------------
+-- Specs on the machine
+----------------------------------------
+function System()
+	return posix.uname( "%s" )
+end
+
+function Machine()
+	return posix.uname( "%m" )
+end
+
+function LinuxFlavor()
+	local info, err = command( "lsb_release -s -i" )
+	assert( err == 0, "Error running lsb_release" )
+	return info
+end
+
+----------------------------------------
+-- Setup the default build type and directory
+----------------------------------------
+local build_type
+local args = { ... }
+if #args > 0 then
+	build_type = args[1]
+end
+
+----------------------------------------
+-- Setup basic environment
+----------------------------------------
+source_dir = posix.getcwd()
+top_source_dir = source_dir
+
+----------------------------------------
+-- Export a symbol to global scope
+----------------------------------------
+function Global( name, value )
+	assert( value, "Nil symbol exported" )
+	exports[name] = value
+end
+
+----------------------------------------
+-- Recurse into a subdirectory
+----------------------------------------
+local envs = {}
+function SubDir( dir )
+	-- Run the local config file
+	if dir == nil then
+		dofile( "config.lua" )
+	end
+
+	local old_file = ninja
+	local old_src_dir = source_dir
+	local old_bld_dir = build_dir
+
+	-- Create a new environment
+	if dir ~= nil then
+		source_dir = SourceFile( dir )
+		build_dir = BuildFile( dir )
+		posix.mkdir( build_dir )
+	end
+
+	-- Store all of the old stuff
+	local env_copy = {}
+	local global = envs[#envs] or _G
+	for k, v in pairs( global ) do
+		env_copy[k] = v
+	end
+	table.insert( envs, env_copy )
+
+	-- Subninja into a new file
+	if dir ~= nil then
+		Ninja( "subninja", BuildFile( "build.ninja" ) )
+	end
+
+	-- Create the new ninja file
+	if dir ~= nil then
+		mkdir( build_dir )
+		local tmp, err = io.open( BuildFile( "build.ninja" ), "w+" )
+		assert( tmp, err )
+		ninja = tmp
+	end
+
+	-- Load the lua file from the subdirectory
+	local newfile, err = loadfile( SourceFile( "build.lua" ) )
+	assert( newfile, err )
+	setfenv( newfile, env_copy )
+	newfile()
+
+	-- Load extra file 
+	if posix.access( SourceFile( "build_extra.lua", "r" ) ) then
+		local extrafile, err = loadfile( SourceFile( "build_extra.lua" ) )
+		assert( extrafile, err )
+		setfenv( extrafile, env_copy )
+		extrafile()
+	end
+
+	-- Finally write out all targets
+	if dir == nil and #all_targets > 0 then
+		Build( "all", "phony", all_targets )
+	end
+
+	-- Close the ninja file
+	ninja:close()
+
+	-- Restore the previous environment
+	ninja = old_file
+	source_dir = old_src_dir
+	build_dir = old_bld_dir
+
+	table.remove( envs, #envs )
+
+	-- exports
+	for k, v in pairs( exports ) do
+		for i, t in ipairs( envs ) do
+			t[k] = v
+		end
+		_G[k] = v
+	end
+	exports = {}
+end
+
+----------------------------------------
+-- Recurse but stay in the same directory
+----------------------------------------
+function SubFile( file )
+	-- Store all of the old stuff
+	local env_copy = {}
+	for k, v in pairs( _G ) do
+		env_copy[k] = v
+	end
+	for k, v in pairs( env ) do
+		env_copy[k] = v
+	end
+	local old_file = ninja
+
+	-- Subninja into a new file
+	if ninja then
+		Ninja( "subninja", BuildFile( file .. ".ninja" ) )
+	end
+
+	-- Create the new ninja file
+	local tmp, err = io.open( BuildFile( file .. ".ninja" ), "w+" )
+	assert( tmp, err )
+	ninja = tmp
+
+	-- Load the lua file from the subdirectory
+	local newfile, err = loadfile( SourceFile( file .. ".lua" ), "t", env_copy )
+	assert( newfile, err )
+	newfile()
+
+	-- Close the ninja file
+	ninja:close()
+
+	-- Restore the previous environment
+	ninja = old_file
+end
+
+----------------------------------------
+-- Recurse into a new scope
+----------------------------------------
+function Scope( file, func )
+	-- Store all of the old stuff
+	local env_copy = {}
+	for k, v in pairs( _G ) do
+		env_copy[k] = v
+	end
+	local old_file = ninja
+
+	-- Subninja into a new file
+	if ninja then
+		Ninja( "subninja", BuildFile( file .. ".ninja" ) )
+	end
+
+	-- Create the new ninja file
+	local tmp, err = io.open( BuildFile( file .. ".ninja" ), "w+" )
+	assert( tmp, err )
+	ninja = tmp
+
+	-- Run the function in the new scope
+	func()
+
+	-- Close the ninja file
+	ninja:close()
+
+	-- Restore the previous environment
+	ninja = old_file
+end
+
+----------------------------------------
+-- Set a variable
+----------------------------------------
+function Variable( name, ... )
+	assert( ninja, "Invalid build dir" )
+	local value = array_concat( ... )
+	Ninja( name, "=", table.concat( value, " " ) )
+end
+
+----------------------------------------
+-- Find an executable
+----------------------------------------
+function FindExecutable( name, dirs )
+	for k, dir in pairs( dirs ) do
+		local stat = posix.stat( dir .. "/" .. name )
+		if stat ~= nil and stat.type == "regular" then
+			return dir .. "/" .. name
+		end
+	end
+	return nil
+end
+
+----------------------------------------
+-- Find a file recursively
+----------------------------------------
+function FindFileRecursive( file, dirs )
+	for k, dir in pairs( dirs ) do
+		local stat = lfs.attributes( dir .. "/" .. file )
+		if stat ~= nil and stat.mode == "file" then
+			return dir .. "/" .. file
+		else
+			for d in lfs.dir( dir ) do
+				if d ~= "." and d ~= ".." then
+					local fname = dir .. "/" .. d
+					local stat = lfs.attributes( fname )
+					if stat ~= nil and stat.mode == "directory" then
+						ret = FindFileRecursive( file, { fname } )
+						if ret ~= nil then
+							return ret
+						end
+					end
+				end
+			end
+		end
+	end
+	return nil
+end
+
+----------------------------------------
+-- Find a file given a regular expression for the filename
+----------------------------------------
+function FindFilePattern( pattern, dirs )
+	local list = {}
+	for k, dir in pairs( dirs ) do
+		for f in lfs.dir( dir ) do
+			if string.match( f, pattern ) then
+				table.insert( list, dir .. "/" .. f )
+			end
+		end
+	end
+	if #list == 0 then
+		return nil
+	elseif #list == 1 then
+		return list[1]
+	end
+	return list
+end
+
+----------------------------------------
+-- Append to a variable
+----------------------------------------
+function Append( name, ... )
+	assert( ninja, "Invalid build dir" )
+	local list = array_concat( ... )
+	Ninja( name, "=",  "$" .. name, table.concat( list, " " ) )
+end
+
+----------------------------------------
+-- CXX flags
+----------------------------------------
+function CXXFlags( ... )
+	local flags = array_concat( ... )
+	flags = table.concat( flags, " " )
+	Append( "cxxflags", flags )
+end
+
+----------------------------------------
+-- C flags
+----------------------------------------
+function CFlags( ... )
+	local flags = array_concat( ... )
+	flags = table.concat( flags, " " )
+	Append( "cflags", flags )
+end
+
+----------------------------------------
+-- Warning flags
+----------------------------------------
+function Warning( ... )
+	local flags = array_concat( ... )
+	local str = ""
+	for k, warn in pairs( flags ) do
+		if warn:match( "^-" ) then
+			str = str .. " " .. warn
+		else
+			str = str .. " -W" .. warn
+		end
+	end
+	Append( "cwarn", str )
+	Append( "cxxwarn", str )
+end
+
+function CXXWarning( ... )
+	local flags = array_concat( ... )
+	local str = ""
+	for k, warn in pairs( flags ) do
+		if warn:match( "^-" ) then
+			str = str .. " " .. warn
+		else
+			str = str .. " -W" .. warn
+		end
+	end
+	Append( "cxxwarn", str )
+end
+
+function CWarning( ... )
+	local flags = array_concat( ... )
+	local str = ""
+	for k, warn in pairs( flags ) do
+		if warn:match( "^-" ) then
+			str = str .. " " .. warn
+		else
+			str = str .. " -W" .. warn
+		end
+	end
+	Append( "cwarn", str )
+end
+
+----------------------------------------
+-- LD flags
+----------------------------------------
+function LDFlags( ... )
+	local flags = array_concat( ... )
+	flags = table.concat( flags, " " )
+	Append( "ldflags", flags )
+end
+
+----------------------------------------
+-- Include directory
+----------------------------------------
+function Include( ... )
+	local dirs = array_concat( ... )
+	local str = ""
+	for k, dir in pairs( dirs ) do
+		if dir:match( "^-I" ) then
+			str = str .. " " .. dir
+		else
+			str = str .. " -I" .. dir
+		end
+	end
+	Append( "incdirs", str )
+end
+
+----------------------------------------
+-- Definition
+----------------------------------------
+function Definition( ... )
+	local defs = array_concat( ... )
+	local str = ""
+	for k, def in pairs( defs ) do
+		if def:match( "^-D" ) then
+			str = str .. " " .. def
+		else
+			str = str .. " -D" .. def
+		end
+	end
+	Append( "defs", str )
+end
+
+----------------------------------------
+-- Construct the filename in the build directory
+----------------------------------------
+function BuildFile( file )
+	if file == nil then
+		return build_dir
+	end
+	if file:match( "^/" ) then
+		return file
+	end
+	return build_dir .. "/" .. file
+end
+
+----------------------------------------
+-- Construct the filename in the build directory
+----------------------------------------
+function TopBuildFile( file )
+	if file == nil then
+		return top_build_dir
+	end
+	if file:match( "^/" ) then
+		return file
+	end
+	return top_build_dir .. "/" .. file
+end
+
+----------------------------------------
+-- Construct the filename in the lib directory
+----------------------------------------
+function LibFile( file )
+	if file:match( "^/" ) then
+		return file
+	end
+	return top_build_dir .. "/lib/" .. file
+end
+
+----------------------------------------
+-- Construct the filename in the lib directory
+----------------------------------------
+function BinFile( file )
+	if file:match( "^/" ) then
+		return file
+	end
+	return top_build_dir .. "/bin/" .. file
+end
+
+----------------------------------------
+-- Construct the filename in the source directory
+----------------------------------------
+function SourceFile( file )
+	if file == nil then
+		return source_dir
+	end
+	if file:match( "^/" ) then
+		return file
+	end
+	return source_dir .. "/" .. file
+end
+
+----------------------------------------
+-- Construct the filename in the source directory
+----------------------------------------
+function TopSourceFile( file )
+	if file:match( "^/" ) then
+		return file
+	end
+	return top_source_dir .. "/" .. file
+end
+
+----------------------------------------
+-- Set the build type
+----------------------------------------
+function DefaultBuildType( name )
+	if build_type == nil then
+		build_type = name
+	end
+end
+----------------------------------------
+-- Set the build directory
+----------------------------------------
+function BuildDir( name, dir )
+	if name == build_type then
+		build_dir = posix.getcwd() .. "/" .. dir
+		top_build_dir = build_dir
+		posix.mkdir( build_dir )
+		ninja = io.open( build_dir .. "/build.ninja", "w+" )
+		Ninja( "include", SourceFile( "rules.ninja" ) )
+		Build( "always", "phony" )
+		Variable( "builddir", build_dir )
+	end
+end
+
+----------------------------------------
+-- Query the build type
+----------------------------------------
+function Building( name )
+	if build_type == name then
+		return true
+	end
+	return false
+end
+
+----------------------------------------
+-- Get a list of files in dir matching pattern
+----------------------------------------
+function Glob( dir, pattern )
+	local list = {}
+	local d = source_dir
+	if dir ~= nil then
+		d = d .. "/" .. dir
+	end
+	for f in lfs.dir( d ) do
+		if pattern == nil or string.match( f, pattern ) then
+			table.insert( list, f )
+		end
+	end
+	return list
+end
+
+----------------------------------------
+-- Compile a source file
+----------------------------------------
+function Compile( ... )
+	assert( ninja, "Invalid build dir" )
+	local srcs = array_concat( ... )
+	local ret = {}
+	local hdrs = {}
+	local incs = {}
+	local cpps = {}
+	local cs = {}
+
+	-- sort the file types
+	for k, file in pairs( srcs ) do
+		if file:match( "[.]cpp$" ) then
+			table.insert( cpps, file )
+		elseif file:match( "[.]c$" ) then
+			table.insert( cs, file )
+		elseif file:match( "[.]h$" ) then
+			table.insert( hdrs, BuildFile( file ) )
+		elseif file:match( "^-I" ) then
+			table.insert( incs, file )
+		end
+	end
+
+	if #hdrs > 0 then
+		hdrs = " | " .. table.concat( hdrs, " " )
+	else
+		hdrs = ""
+	end
+	if #incs > 0 then
+		incs = "  extra_incs = " .. table.concat( incs, " " ) .. "\n"
+	else
+		incs = nil 
+	end
+
+	for k, file in pairs( cpps ) do
+		local obj = BuildFile( file:gsub( "[.]cpp$", ".o" ) )
+		Build( obj, "cxx", SourceFile( file ), hdrs );
+		if incs then
+			ninja:write( incs )
+		end
+		table.insert( ret, obj )
+	end
+
+	for k, file in pairs( cs ) do
+		local obj = BuildFile( file:gsub( "[.]c$", ".o" ) )
+		Build( obj, "cc", SourceFile( file ), hdrs )
+		if incs then
+			ninja:write( incs )
+		end
+		table.insert( ret, obj )
+	end
+
+	return ret
+end
+
+----------------------------------------
+-- Create and compile a version file
+----------------------------------------
+function Version( ver )
+	assert( ninja, "Invalid build dir" )
+	local name = BuildFile( "_Version.cpp" )
+	local text = {
+		"const char *VERSION_ID = \"" .. ver .. "\";";
+		"const char *BUILD_DATE = __DATE__;";
+	}
+	if file_diff( name, text ) then
+		local file, err = io.open( name, "w+" )
+		assert( file, err )
+		for i = 1, #text do
+			file:write( text[i] )
+			file:write( "\n" )
+		end
+		file:close()
+	end
+	return name
+end
+
+----------------------------------------
+-- Link an executable
+----------------------------------------
+function Executable( name, ... )
+	OptExecutable( name, ... )
+	ninja:write( "default " .. name .. "\n" )
+end
+
+function OptExecutable( name, ... )
+	assert( ninja, "Invalid build dir" )
+	local file = BinFile( name )
+	local objs = array_concat( ... )
+	local shared = {}
+	local libs = {}
+	local vars = {}
+	table.insert( all_targets, name )
+	Build( name, "phony", file )
+	ninja:write( "build " .. file .. ": link_exe" )
+	for k, obj in pairs( objs ) do
+		if obj:match( "[.]o$" ) then
+			if obj:match( "lmcrypt[.]o$") then
+				table.insert( vars, "  io_redirect = 2>/dev/null" )
+			end
+			ninja:write( " " .. BuildFile( obj ) )
+		elseif obj:match( "^-" ) then
+			table.insert( libs, obj )
+		elseif obj:match( "[.]a$" ) then
+			ninja:write( " " .. BuildFile( obj ) )
+		elseif obj:match( "[.]so$" ) then
+			table.insert( shared, BuildFile( obj ) )
+			table.insert( libs, BuildFile( obj ) )
+		else
+			error( "Can't link " .. obj )
+		end
+	end
+	if #shared > 0 then
+		ninja:write( " || " )
+		ninja:write( table.concat( remove_dup_libs( shared ), " " ) )
+	end
+	ninja:write( "\n" )
+	if #libs > 0 then
+		ninja:write( "  libs = " )
+		ninja:write( table.concat( remove_dup_libs( libs ), " " ) )
+		ninja:write( "\n" )
+	end
+	if #vars > 0 then
+		ninja:write( table.concat( vars, "\n" ) .. "\n" )
+	end
+	return file
+end
+
+----------------------------------------
+-- Build something by default
+----------------------------------------
+function BuildByDefault( ... )
+	local targets = array_concat( ... )
+	if #targets > 0 then
+		Ninja( "default", table.concat( targets, " " ) )
+	end
+end
+
+----------------------------------------
+-- Link a library to an executable
+----------------------------------------
+function LinkSharedLibs( ... )
+	local libs = array_concat( ... )
+	local list = {}
+	for k, lib in pairs( libs ) do
+		table.insert( list, top_build_dir .. "/lib/lib" .. lib .. ".so" )
+		assert( libs_needed[lib], "Missing library " .. lib )
+		for i, extra in pairs( libs_needed[lib] ) do
+			table.insert( list, extra )
+		end
+	end
+	return remove_dup_libs( list )
+end
+
+function LinkStaticLibs( ... )
+	local libs = array_concat( ... )
+	local list = {}
+	for k, lib in pairs( libs ) do
+		table.insert( list, top_build_dir .. "/lib/lib" .. lib .. ".a" )
+		assert( libs_needed[lib], "Missing libraries needed: " .. lib )
+		for i, extra in pairs( libs_needed[lib] ) do
+			table.insert( list, extra )
+		end
+	end
+	return remove_dup_libs( list )
+end
+
+----------------------------------------
+-- Link an external library to an executable
+----------------------------------------
+function LinkSys( ... )
+	local libs = array_concat( ... )
+	local list = {}
+	for k, lib in pairs( libs ) do
+		if lib:match( "^-" ) then
+			table.insert( list, lib )
+		else
+			table.insert( list, "-l" .. lib )
+		end
+	end
+	return list
+end
+
+----------------------------------------
+-- Link a library
+----------------------------------------
+function BaseLibrary( name, link_cmd, file, ... )
+	assert( ninja, "Invalid build dir" )
+	local objs = array_concat( ... )
+	table.insert( all_targets, name )
+	Build( name, "phony", file )
+	ninja:write( "build " .. file .. ": " .. link_cmd )
+	libs_needed[name] = {}
+	for k, obj in pairs( objs ) do
+		assert( type( obj ) == "string", "expected a string, got " .. type(obj) )
+		if obj:match( "[.]o$" ) then
+			ninja:write( " " .. BuildFile( obj ) )
+		elseif obj:match( "[.]so$" ) then
+			table.insert( libs_needed[name], obj )
+		elseif obj:match( "[.]a$" ) then
+			table.insert( libs_needed[name], obj )
+		elseif obj:match( "^-" ) then
+			table.insert( libs_needed[name], obj )
+		else
+			error( "Can't link " .. obj )
+		end
+	end
+	ninja:write( "\n" )
+	return file
+end
+
+function SharedLibrary( name, ... )
+	return BaseLibrary( name, "link_shared_lib", LibFile( "lib" .. name .. ".so" ), ... )
+end
+
+function StaticLibrary( name, ... )
+	return BaseLibrary( name, "link_static_lib", LibFile( "lib" .. name .. ".a" ), ... )
+end
+
+----------------------------------------
+-- Compile a cuda file
+----------------------------------------
+function CUDACompile( group, ... )
+	assert( ninja, "Invalid build dir" )
+	local srcs = array_concat( ... )
+	local ret = {}
+	local list = {}
+	for k, file in pairs( srcs ) do
+		local cpp = BuildFile( file:gsub( "[.]cpp$", ".cuda.cpp" ) )
+		local obj = BuildFile( cpp:gsub( "[.]cpp$", ".o" ) )
+		Build( cpp, "cuda_rewrite_cpp", SourceFile( file ) )
+		ninja:write( "  cuda_group = " .. group .. "\n" )
+		Build( obj, "cxx", cpp )
+		table.insert( ret, obj )
+		table.insert( list, SourceFile( file ) )
+	end
+
+	local cufile = BuildFile( group .. ".cu" )
+	Build( cufile, "cuda_rewrite", list )
+
+	local silly = BuildFile( group ):gsub( "[\.\/]", "_" )
+	local ren = "--redefine-sym _binary_" .. silly .. "ZZXXXZZ_o_cubin_start=_binary_" .. group .. "ZZXXXZZ_cubin_start "
+	ren = ren .. "--redefine-sym _binary_" .. silly .. "ZZXXXZZ_o_cubin_end=_binary_" .. group .. "ZZXXXZZ_cubin_end "
+	ren = ren .. "--redefine-sym _binary_" .. silly .. "ZZXXXZZ_o_cubin_size=_binary_" .. group .. "ZZXXXZZ_cubin_size "
+
+	local obj1 = BuildFile( group .. "_sm_21.o" )
+	Build( obj1, "cuda_compile", cufile )
+	ninja:write( "  cuda_group = " .. group .. "\n" )
+	ninja:write( "  cuda_arch = arch=compute_20,code=sm_21\n" )
+	ninja:write( "  renames = " .. ren:gsub( "ZZXXXZZ", "_sm_21" ) .. "\n" )
+
+	local obj2 = BuildFile( group .. "_sm_20.o" )
+	Build( obj2, "cuda_compile", cufile )
+	ninja:write( "  cuda_group = " .. group .. "\n" )
+	ninja:write( "  cuda_arch = arch=compute_20,code=sm_20\n" )
+	ninja:write( "  renames = " .. ren:gsub( "ZZXXXZZ", "_sm_20" ) .. "\n" )
+
+	local obj3 = BuildFile( group .. "_sm_13.o" )
+	Build( obj3, "cuda_compile", cufile )
+	ninja:write( "  cuda_group = " .. group .. "\n" )
+	ninja:write( "  cuda_arch = arch=compute_13,code=sm_13\n" )
+	ninja:write( "  renames = " .. ren:gsub( "ZZXXXZZ", "_sm_13" ) .. "\n" )
+
+	table.insert( ret, obj1 )
+	table.insert( ret, obj2 )
+	table.insert( ret, obj3 )
+
+	return ret
+end
+
+----------------------------------------
+-- Data compiled directly into an object
+----------------------------------------
+function DataCompile( name, ... )
+	assert( ninja, "Invalid build dir" )
+	local data = array_concat( ... )
+	local text = {}
+	local ret = {}
+	for k, file in pairs( data ) do
+		local fname = file
+		if type( file ) == "table" then
+			fname, file = file[1], file[2]
+		end
+		local symname = name .. "_" .. posix.basename( file ):gsub( "[\.\/]", "_" )
+		table.insert( text, "extern char _binary_" .. symname .. "_start;" )
+		table.insert( text, "extern char _binary_" .. symname .. "_end;" )
+		table.insert( text, "extern int _binary_" .. symname .. "_size;" )
+	end
+	table.insert( text, "static struct { const char *name\; const char *start\; const char *end\; intptr_t size\; } " .. name .. "[] = {" )
+	for k, file in pairs( data ) do
+		local fname = file
+		if type( file ) == "table" then
+			fname, file = file[1], file[2]
+		end
+		local symname = name .. "_" .. posix.basename( file ):gsub( "[\.\/]", "_" )
+		local silly = SourceFile( file ):gsub( "[\.\/]", "_" )
+		local obj = BuildFile( file .. ".o" )
+		table.insert( text, "{ \"" .. fname .. "\", &_binary_" .. symname .. "_start, &_binary_" .. symname .. "_end, (intptr_t)&_binary_" .. symname .. "_size }," )
+		Build( obj, "data_compile", SourceFile( file ) )
+		local ren = "--redefine-sym _binary_" .. silly .. "_start=_binary_" .. symname .. "_start "
+		ren = ren .. "--redefine-sym _binary_" .. silly .. "_end=_binary_" .. symname .. "_end "
+		ren = ren .. "--redefine-sym _binary_" .. silly .. "_size=_binary_" .. symname .. "_size "
+		ninja:write( "  renames = " .. ren .. "\n" )
+		table.insert( ret, obj )
+	end
+	table.insert( text, "{ 0, 0, 0, 0 } }\;" )
+
+	local hfile = BuildFile( name .. ".h" )
+	if file_diff( hfile, text ) then
+		local header = io.open( hfile, "w+" )
+		for i = 1, #text do
+			header:write( text[i] )
+			header:write( "\n" )
+		end
+		header:close()
+	end
+	return ret
+end
+
+----------------------------------------
+-- Lua compiled directly into an object
+----------------------------------------
+function LuaCompile( name, ... )
+	assert( ninja, "Invalid build dir" )
+	local scripts = array_concat( ... )
+	local ret = {}
+	for k, script in pairs( scripts ) do
+		local obj = BuildFile( script .. "o" )
+		Build( obj, "luac", SourceFile( script ) )
+		table.insert( ret, { script, obj } )
+	end
+
+	return DataCompile( name, ret )
+end
+
+function DParse( file )
+	local cpp = BuildFile( file:gsub( "[.]g$", ".g.d_parser.cpp" ) )
+
+	Build( cpp, "dparse", SourceFile( file ) )
+	ninja:write( "  dir = " )
+	ninja:write( BuildFile() )
+	ninja:write( "\n" )
+	ninja:write( "  file = " )
+	ninja:write( file )
+	ninja:write( "\n" )
+
+	return cpp;
+end
+
+----------------------------------------
+-- Run a command that generates files
+----------------------------------------
+function Run( input, output, dir, cmd, ... )
+	assert( ninja, "Invalid build dir" )
+	input = array_concat( input )
+	output = array_concat( output )
+	ninja:write( "build" )
+	for k, o in pairs( output ) do
+		ninja:write( " " .. o )
+	end
+	ninja:write( ": run" )
+	for k, i in pairs( input ) do
+		ninja:write( " " .. i )
+	end
+	ninja:write( " | " .. cmd ..  "\n" )
+	ninja:write( "  dir = " .. dir .. "\n" )
+	ninja:write( "  cmd = " .. cmd .. "\n" )
+	ninja:write( "  args =" )
+	local args = array_concat( ... )
+	for k, arg in pairs( args ) do
+		ninja:write( " " .. arg )
+	end
+	ninja:write( "\n" )
+	return output
+end
+
+----------------------------------------
+-- Find package
+----------------------------------------
+function Package( ... )
+	local libs = array_concat( ... )
+	libs = table.concat( libs, " " )
+
+	local cflags, err = command( "pkg-config --cflags-only-other " .. libs )
+	assert( err == 0, cflags )
+
+	local iflags, err = command( "pkg-config --cflags-only-I " .. libs )
+	assert( err == 0, iflags )
+
+	local lflags, err = command( "pkg-config --libs-only-l " .. libs )
+	assert( err == 0, lflags )
+
+	local Lflags, err = command( "pkg-config --libs-only-L " .. libs )
+	assert( err == 0, Lflags )
+
+	return cflags, iflags, lflags .. " " .. Lflags
+end
+
+
+----------------------------------------
+-- Qt header file processing
+----------------------------------------
+function QtHeader( ... )
+	local hdrs = array_concat( ... )
+	assert( hdrs and #hdrs > 0, "No headers" )
+	local ret = {}
+	for k, hdr in pairs( hdrs ) do
+		local out = BuildFile( hdr:gsub( "[.]h$", ".moc.cpp" ) )
+		Build( out, "moc", SourceFile( hdr ) )
+		table.insert( ret, out )
+	end
+	return ret
+end
+
+----------------------------------------
+-- Qt ui file processing
+----------------------------------------
+function QtUI( ... )
+	local uis = array_concat( ... )
+	assert( uis and #uis > 0, "No ui file" )
+	local ret = {}
+	for k, ui in pairs( uis ) do
+		local out = BuildFile( "ui_" .. ui:gsub( "[.]ui$", ".h" ) )
+		Build( out, "uic", SourceFile( ui ) )
+		table.insert( ret, out )
+	end
+
+	return ret
+end
+
+----------------------------------------
+-- Qt resource file processing
+----------------------------------------
+function QtResource( name, ...  )
+	local qrcs = array_concat( ... )
+	local ret = {}
+	for k, qrc in pairs( qrcs ) do
+		local deps = ""
+		local file, err = io.open( SourceFile( qrc ), "r" )
+		assert( file, err )
+		for line in file:lines() do
+			local f = line:match( "<file[^>]*>(.*)</file>" )
+			if f then
+				deps = deps .. " " .. SourceFile( f )
+			end
+		end
+
+		local out = BuildFile( qrc .. ".cpp" )
+		ninja:write( "build " .. out .. ": rcc " .. SourceFile( qrc ) .. " | " .. deps .. "\n" )
+		ninja:write( "  name = " .. name .. "\n" )
+		table.insert( ret, out )
+	end
+
+	return ret
+end
+
+----------------------------------------
+-- Qt help
+----------------------------------------
+function QtHelp( name )
+	local qhp = name .. ".qhp"
+	local qhcp = name .. ".qhcp"
+
+	local qch = TopBuildFile( "Docs/" .. name .. ".qch" )
+	local qhc = TopBuildFile( "Docs/" .. name .. ".qhc" )
+
+	local out = BuildFile( name )
+
+	local deps = {}
+	local file, err = io.open( TopSourceFile( "Docs/" .. qhp ), "r" )
+	assert( file, err )
+	for line in file:lines() do
+		local f = line:match( "<file[^>]*>(.*)</file>" )
+		if f then
+			table.insert( deps, TopSourceFile( "Docs/" .. f ) )
+		end
+	end
+
+	ninja:write( "build " )
+	ninja:write( qch )
+	ninja:write( " " )
+	ninja:write( qhc )
+	ninja:write( ": qhelp" )
+	for i = 1, #deps do
+		ninja:write( " " )
+		ninja:write( deps[i] )
+	end
+	ninja:write( " " )
+	ninja:write( TopSourceFile( "Docs/" .. qhp ) )
+	ninja:write( " " )
+	ninja:write( TopSourceFile( "Docs/" .. qhcp ) )
+	ninja:write( "\n" )
+
+	Ninja( "  qhp = ", qhp )
+	Ninja( "  qhcp = ", qhcp )
+	Ninja( "  qch = ", qch )
+	Ninja( "  qhc = ", qhc )
+	Ninja( "  src = ", TopSourceFile( "Docs" ) )
+	Ninja( "  dst = ", TopBuildFile( "Docs" ) )
+
+	Ninja( "default", qch, qhc )
+	Build( name .. "Help", "phony", qch, qhc )
+end
+
+----------------------------------------
+-- Flatten everything into a single list
+----------------------------------------
+function Flatten( ... )
+	return array_concat( ... )
+end
+
+----------------------------------------
+-- Start the whole process
+----------------------------------------
+SubDir()
+

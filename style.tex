@@ -1,0 +1,60 @@
+\documentclass[letterpaper,12pt,final,openright,svgnames]{book}
+
+\usepackage[pdftex,bookmarks=true,linkbordercolor={0 0 1}]{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{svg.path}
+
+\tikzset{
+  line/.style={
+	draw=black
+  },
+  arrow/.style={
+	draw=black
+  },
+  box/.style={
+	draw=black,
+	text=black
+  },
+  title/.style={
+	draw=black,
+	text=black,
+	font=\ttfamily\large,
+	align=left
+  },
+  production/.style={
+	draw=black,
+	text=black,
+	font=\ttfamily,
+	align=left
+  },
+  literal/.style={
+	draw=black,
+	text=red,
+	font=\ttfamily,
+	align=center
+  },
+  identifier/.style={
+	draw=black,
+	text=blue,
+	font=\ttfamily,
+	align=center
+  },
+  other/.style={
+	draw=black,
+	text=green,
+	font=\ttfamily,
+	align=center
+  },
+  end/.style={
+	draw=black
+  },
+  test/.style={
+	draw=red
+  },
+}
+
+\begin{document}
+
+\input{ebnf.tex}
+
+\end{document}

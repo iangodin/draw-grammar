@@ -1,0 +1,28 @@
+
+Supported OS
+============
+
+Compiles and runs on Linux, and OS X.  I am using Ubuntu 12.4 for Linux, and Mountain Lion for OS X.
+A compiler supporting C++11 is needed (g++ 4.6 or better, or clang 4.0 or better).
+
+Requirements
+============
+
+On Linux, you will need lua and lua-posix (packages are usually available for Linux, look for lua and liblua-posix).
+Ninja is used as the build tool.
+DParser is used as the parsing tool.
+
+Here are the location for the required tools
+
+http://lua.org
+http://files.luaforge.net/releases/luaposix/luaposix
+http://martine.github.com/ninja/
+http://dparser.sourceforge.net/
+
+Building
+========
+
+There is a Makefile provided, but ninja is really used to compile.
+Once the requirements are installed, simply run "make" to compile.
+There's a single executable in <source_location>/build/bin/draw_grammar
+
