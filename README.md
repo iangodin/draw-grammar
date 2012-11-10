@@ -30,3 +30,9 @@ Once the requirements are installed, simply run "make" to compile.
 There's a single executable in the directory build/bin/draw_grammar
 
 You can also use "make debug" which will create an executable in debug/bin/draw_grammar.
+
+The configure script is in fact a lua script.
+You do not need to invoke this script, the Makefile will call configure for you.
+It will search for the required libraries and programs, and create a build, release, and debug directory.
+There is currently no difference between build and release.
+
