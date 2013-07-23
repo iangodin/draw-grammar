@@ -114,7 +114,7 @@ void draw_svg::round( float x, float y, float w, float h, Class cl )
 
 void draw_svg::text( float x, float y, float w, float h, const string &text, Class cl )
 {
-	out << "  <text x=\"" << xx(x) << "\" y=\"" << yy(y + h) << "\" class=" << clname( cl, true ) << ">";
+	out << "  <text x=\"" << xx(x) << "\" y=\"" << yy(y + h/2.F) << "\" alignment-baseline=\"central\" class=" << clname( cl, true ) << ">";
 	out << escape( text ) << "</text>\n";
 }
 
@@ -122,7 +122,7 @@ void draw_svg::text( float x, float y, float w, float h, const string &text, Cla
 
 void draw_svg::text_center( float x, float y, float w, float h, const string &text, Class cl )
 {
-	out << "  <text x=\"" << xx(x + w/2.F) << "\" y=\"" << yy(y + h) << "\" text-anchor=\"middle\" class=" << clname( cl, true ) << ">";
+	out << "  <text x=\"" << xx(x + w/2.F) << "\" y=\"" << yy(y + h/2.F) << "\" text-anchor=\"middle\" alignment-baseline=\"central\" class=" << clname( cl, true ) << ">";
 	out << escape( text ) << "</text>\n";
 }
 
