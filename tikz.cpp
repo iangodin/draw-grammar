@@ -45,10 +45,11 @@ draw_tikz::~draw_tikz( void )
 
 void draw_tikz::begin( const string &title )
 {
+	std::string t = escape( title );
 	out <<
-		"\\begin{figure}[H]\n"
-		"\\caption{" << escape( title ) << "}\n"
-		"\\label{fig:picture}\n"
+		"\\begin{figure}[htbp]\n"
+		"\\caption{" << t << "}\n"
+		"\\label{fig:" << t << "}\n"
 		"\\center\n"
 		"\\begin{tikzpicture}[yscale=-1]\n";
 }
@@ -106,21 +107,23 @@ void draw_tikz::circle( float x, float y, float r, Class cl )
 
 void draw_tikz::round( float x, float y, float w, float h, Class cl )
 {
-	out << "  " << clname( cl ) << "[rounded corners = " << em(h/2.F) << "em] (" << em(xx(x)) << "em," << em(yy(y)) << "em) rectangle (" << em(xx(x+w)) << "em," << em(yy(y+h)) << "em);\n";
+	out << "  " << clname( cl ) << "[rounded corners=" << em(h/2.F) << "em] (" << em(xx(x)) << "em," << em(yy(y)) << "em) rectangle (" << em(xx(x+w)) << "em," << em(yy(y+h)) << "em);\n";
 }
 
 ////////////////////////////////////////
 
 void draw_tikz::text( float x, float y, float w, float h, const string &text, Class cl )
 {
-	out << "  " << clname( cl ) << " (" << em(xx(x+w/2.F)) << "em," << em(yy(y+h/2.F))+0.25F << "em) node {" << escape( text ) << "};\n";
+	// The title is the figure name, so skip drawing it again.
+	if ( cl != TITLE )
+		out << "  " << clname( cl ) << " (" << em(xx(x+w/2.F)) << "em," << em(yy(y+h/2.F)) << "em) node[anchor=mid] {" << escape( text ) << "};\n";
 }
 
 ////////////////////////////////////////
 
 void draw_tikz::text_center( float x, float y, float w, float h, const string &text, Class cl )
 {
-	out << "  " << clname( cl ) << " (" << em(xx(x+w/2.F)) << "em," << em(yy(y+h/2.F))+0.25F << "em) node {" << escape( text ) << "};\n";
+	out << "  " << clname( cl ) << " (" << em(xx(x+w/2.F)) << "em," << em(yy(y+h/2.F)) << "em) node[anchor=mid] {" << escape( text ) << "};\n";
 }
 
 ////////////////////////////////////////
