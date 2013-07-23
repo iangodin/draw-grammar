@@ -34,8 +34,8 @@
 #define TEXT_PAD 8.F
 #define LINE_HEIGHT (TEXT_SIZE+TEXT_PAD)
 #define CIRCLE 4.F
-#define PADV 8.F
-#define PADH 10.F
+#define PADV 6.F
+#define PADH 4.F
 #define RADIUS 10.F
 #define ARROW_SIZE 10.F
 #define TEXT_RATIO 0.38F
@@ -409,8 +409,11 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 			dc.hline( i.l_anchor().move( PADH, 0 ), e.l_anchor(), LINE );
 		}
 		point end = e.r_anchor().move( PADH*2, 0 );
+		end.x -= 1;
 
 		dc.hline( e.r_anchor(), end, LINE );
+
+		end.x += 1;
 		dc.circle( end.x + CIRCLE/2, end.y, CIRCLE, END );
 		dc.pop_translate();
 		ctxt.pop_state();
@@ -824,17 +827,17 @@ void render( draw &dc, const node *node, render_context &ctxt, bool &above )
 		{
 			case PRODUCTION:
 			case TITLE:
-				dc.text( p1.x + PADH, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), cl );
+				dc.text( p1.x + PADH, p1.y, p2.x-p1.x, p2.y-p1.y, n->value(), cl );
 				break;
 
 			case NONTERM:
 				dc.box( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y, cl );
-				dc.text_center( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), cl );
+				dc.text_center( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y, n->value(), cl );
 				break;
 
 			default:
 				dc.round( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y, cl );
-				dc.text_center( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y-TEXT_PAD, n->value(), cl );
+				dc.text_center( p1.x, p1.y, p2.x-p1.x, p2.y-p1.y, n->value(), cl );
 				break;
 		}
 		above = false;
