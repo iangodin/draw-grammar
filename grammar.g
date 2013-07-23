@@ -105,7 +105,7 @@ factor:
 		};
 
 identifier:
-	"[a-zA-Z][a-zA-Z0-9_]*"
+	"[a-zA-Z][a-zA-Z0-9_\-]*"
 		{
 			$$ = new literal( $n0.start_loc.s, $n0.end, '\0' );
 		};
